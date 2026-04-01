@@ -1,8 +1,8 @@
 <?php
 /**
- * Database helper for True RUM Monitor.
+ * Database helper for Mudrava RUM.
  *
- * @package TrueRUMMonitor
+ * @package MudravaRUM
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -10,9 +10,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Database helper class for True RUM Monitor.
+ * Database helper class for Mudrava RUM.
  */
-class TRM_DB {
+class MDVRM_DB {
 
 	/**
 	 * Create or update plugin table.
@@ -23,7 +23,7 @@ class TRM_DB {
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 
 		$charset_collate = $wpdb->get_charset_collate();
-		$table           = TRM_TABLE;
+		$table           = MDVRM_TABLE;
 
 		$sql = "CREATE TABLE {$table} (
 			id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
@@ -64,11 +64,11 @@ class TRM_DB {
 		 *
 		 * @param array $row Sanitized row data.
 		 */
-		$row = apply_filters( 'trm_before_insert', $row );
+		$row = apply_filters( 'mdvrm_before_insert', $row );
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
 		$wpdb->insert(
-			TRM_TABLE,
+			MDVRM_TABLE,
 			$row,
 			array(
 				'%s', // event_time.
@@ -89,7 +89,7 @@ class TRM_DB {
 
 		if ( $wpdb->last_error ) {
 			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-			error_log( 'True RUM Monitor: insert failed — ' . $wpdb->last_error );
+			error_log( 'Mudrava RUM: insert failed — ' . $wpdb->last_error );
 			return false;
 		}
 
@@ -110,18 +110,18 @@ class TRM_DB {
 		}
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-		$total = (int) $wpdb->get_var( $wpdb->prepare( 'SELECT COUNT(id) FROM %i', TRM_TABLE ) );
+		$total = (int) $wpdb->get_var( $wpdb->prepare( 'SELECT COUNT(id) FROM %i', MDVRM_TABLE ) );
 		if ( $total <= $limit ) {
 			return;
 		}
 
 		$offset = $total - $limit;
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-		$ids = $wpdb->get_col( $wpdb->prepare( 'SELECT id FROM %i ORDER BY event_time ASC LIMIT %d', TRM_TABLE, $offset ) );
+		$ids = $wpdb->get_col( $wpdb->prepare( 'SELECT id FROM %i ORDER BY event_time ASC LIMIT %d', MDVRM_TABLE, $offset ) );
 		if ( ! empty( $ids ) ) {
 			$placeholders = implode( ',', array_fill( 0, count( $ids ), '%d' ) );
 			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-			$wpdb->query( $wpdb->prepare( "DELETE FROM %i WHERE id IN ({$placeholders})", array_merge( array( TRM_TABLE ), $ids ) ) );
+			$wpdb->query( $wpdb->prepare( "DELETE FROM %i WHERE id IN ({$placeholders})", array_merge( array( MDVRM_TABLE ), $ids ) ) );
 		}
 	}
 
@@ -140,7 +140,7 @@ class TRM_DB {
 
 		$cutoff = gmdate( 'Y-m-d H:i:s', strtotime( '-' . $days . ' days' ) );
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-		$wpdb->query( $wpdb->prepare( 'DELETE FROM %i WHERE event_time < %s', TRM_TABLE, $cutoff ) );
+		$wpdb->query( $wpdb->prepare( 'DELETE FROM %i WHERE event_time < %s', MDVRM_TABLE, $cutoff ) );
 	}
 
 	/**
@@ -190,12 +190,12 @@ class TRM_DB {
 		}
 
 		$total_sql    = 'SELECT COUNT(id) FROM %i ' . $where;
-		$total_params = array_merge( array( TRM_TABLE ), $params );
+		$total_params = array_merge( array( MDVRM_TABLE ), $params );
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter
 		$total = (int) $wpdb->get_var( $wpdb->prepare( $total_sql, $total_params ) );
 
 		$data_sql    = 'SELECT id, event_time, url, server_time, ttfb, lcp, total_load, memory_peak, device, net, country, session_id, user_role FROM %i ' . $where . " ORDER BY %i {$order} LIMIT %d OFFSET %d";
-		$data_params = array_merge( array( TRM_TABLE ), $params, array( $order_by, $per_page, $offset ) );
+		$data_params = array_merge( array( MDVRM_TABLE ), $params, array( $order_by, $per_page, $offset ) );
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter
 		$data = $wpdb->get_results( $wpdb->prepare( $data_sql, $data_params ), ARRAY_A );
 
@@ -248,7 +248,7 @@ class TRM_DB {
 			AVG(NULLIF(total_load, 0)) as avg_load
 			FROM %i {$where}";
 
-		$all_params = array_merge( array( TRM_TABLE ), $params );
+		$all_params = array_merge( array( MDVRM_TABLE ), $params );
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter
 		$stats = $wpdb->get_row( $wpdb->prepare( $sql, $all_params ), ARRAY_A );
 
@@ -257,7 +257,7 @@ class TRM_DB {
 		if ( $stats['count'] > 0 ) {
 			$offset_p75 = floor( $stats['count'] * 0.75 );
 			$p75_sql    = "SELECT lcp FROM %i {$where} ORDER BY lcp ASC LIMIT 1 OFFSET %d";
-			$p75_params = array_merge( array( TRM_TABLE ), $params, array( $offset_p75 ) );
+			$p75_params = array_merge( array( MDVRM_TABLE ), $params, array( $offset_p75 ) );
 			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter
 			$p75_lcp = $wpdb->get_var( $wpdb->prepare( $p75_sql, $p75_params ) );
 		}
@@ -272,13 +272,13 @@ class TRM_DB {
 
 		// Top 5 Slowest URLs by LCP.
 		$slowest_lcp_sql = "SELECT url, AVG(lcp) as avg_lcp, COUNT(id) as count FROM %i {$where} GROUP BY url HAVING count >= 2 ORDER BY avg_lcp DESC LIMIT 5";
-		$lcp_params      = array_merge( array( TRM_TABLE ), $params );
+		$lcp_params      = array_merge( array( MDVRM_TABLE ), $params );
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter
 		$stats['slowest_lcp'] = $wpdb->get_results( $wpdb->prepare( $slowest_lcp_sql, $lcp_params ), ARRAY_A );
 
 		// Top 5 Heavy Server Generation.
 		$slowest_srv_sql = "SELECT url, AVG(server_time) as avg_srv, COUNT(id) as count FROM %i {$where} GROUP BY url HAVING count >= 2 ORDER BY avg_srv DESC LIMIT 5";
-		$srv_params      = array_merge( array( TRM_TABLE ), $params );
+		$srv_params      = array_merge( array( MDVRM_TABLE ), $params );
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter
 		$stats['slowest_srv'] = $wpdb->get_results( $wpdb->prepare( $slowest_srv_sql, $srv_params ), ARRAY_A );
 
@@ -305,7 +305,7 @@ class TRM_DB {
 			'country'     => isset( $row['country'] ) ? sanitize_text_field( $row['country'] ) : '',
 			'session_id'  => isset( $row['session_id'] ) ? sanitize_text_field( $row['session_id'] ) : '',
 			'user_role'   => isset( $row['user_role'] ) ? sanitize_text_field( $row['user_role'] ) : '',
-			'meta'        => isset( $row['meta'] ) ? wp_json_encode( $row['meta'] ) : null,
+			'meta'        => isset( $row['meta'] ) ? wp_json_encode( $row['meta'] ) : '{}',
 		);
 
 		return $sanitized;

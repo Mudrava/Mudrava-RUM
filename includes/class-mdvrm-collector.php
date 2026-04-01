@@ -2,7 +2,7 @@
 /**
  * Frontend collector enqueuer.
  *
- * @package TrueRUMMonitor
+ * @package MudravaRUM
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -12,21 +12,21 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Frontend collector enqueuer class.
  */
-class TRM_Collector {
+class MDVRM_Collector {
 
 	/**
 	 * Plugin reference.
 	 *
-	 * @var TRM_Plugin
+	 * @var MDVRM_Plugin
 	 */
 	protected $plugin;
 
 	/**
 	 * Constructor.
 	 *
-	 * @param TRM_Plugin $plugin Plugin instance.
+	 * @param MDVRM_Plugin $plugin Plugin instance.
 	 */
-	public function __construct( TRM_Plugin $plugin ) {
+	public function __construct( MDVRM_Plugin $plugin ) {
 		$this->plugin = $plugin;
 	}
 
@@ -50,13 +50,13 @@ class TRM_Collector {
 			return;
 		}
 
-		$handle = 'trm-collector';
+		$handle = 'mdvrm-collector';
 
 		wp_register_script(
 			$handle,
-			TRM_PLUGIN_URL . 'assets/js/trm-collector.js',
+			MDVRM_PLUGIN_URL . 'assets/js/mdvrm-collector.js',
 			array(),
-			TRM_VERSION,
+			MDVRM_VERSION,
 			true
 		);
 
@@ -78,15 +78,15 @@ class TRM_Collector {
 		$context = $this->plugin->get_server_context();
 
 		$localize = array(
-			'restUrl'    => esc_url_raw( rest_url( 'true-rum/v1/collect' ) ),
-			'nonce'      => wp_create_nonce( 'trm_collect' ),
+			'restUrl'    => esc_url_raw( rest_url( 'mudrava-rum/v1/collect' ) ),
+			'nonce'      => wp_create_nonce( 'mdvrm_collect' ),
 			'timestamp'  => current_time( 'mysql', true ),
 			'server'     => array(
 				'time'       => $context['serverTime'],
 				'memoryPeak' => $context['memoryPeak'],
 				'country'    => $context['country'],
 			),
-			'sessionKey' => 'trm_session_id',
+			'sessionKey' => 'mdvrm_session_id',
 		);
 
 		/**
@@ -94,11 +94,11 @@ class TRM_Collector {
 		 *
 		 * @param array $localize Collector settings.
 		 */
-		$localize = apply_filters( 'trm_collector_settings', $localize );
+		$localize = apply_filters( 'mdvrm_collector_settings', $localize );
 
 		wp_add_inline_script(
-			'trm-collector',
-			'var TRMCollectorSettings = ' . wp_json_encode( $localize ) . ';',
+			'mdvrm-collector',
+			'var MDVRMCollectorSettings = ' . wp_json_encode( $localize ) . ';',
 			'before'
 		);
 	}

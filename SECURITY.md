@@ -8,7 +8,7 @@
 
 ## Reporting a Vulnerability
 
-If you discover a security vulnerability in True RUM Monitor, please report it responsibly.
+If you discover a security vulnerability in Mudrava RUM, please report it responsibly.
 
 **Do not open a public GitHub issue for security vulnerabilities.**
 
@@ -23,7 +23,7 @@ We will acknowledge your report within **48 hours** and aim to release a patch w
 
 ## Security Design
 
-True RUM Monitor is built with a privacy-first, security-conscious architecture:
+Mudrava RUM is built with a privacy-first, security-conscious architecture:
 
 ### Data Collection
 
@@ -34,7 +34,7 @@ True RUM Monitor is built with a privacy-first, security-conscious architecture:
 ### Authentication
 
 - **Admin endpoints** (`/logs`, `/stats`, `/send-report`) require `manage_options` capability via WordPress REST API authentication
-- **Public endpoint** (`/collect`) uses a custom nonce (`X-TRM-Nonce` header) to prevent unauthorized submissions while avoiding WordPress core's premature cookie authentication checks
+- **Public endpoint** (`/collect`) uses a custom nonce (`X-MDVRM-Nonce` header) to prevent unauthorized submissions while avoiding WordPress core's premature cookie authentication checks
 - **Settings forms** use standard WordPress nonce verification (`wp_nonce_field` / `wp_verify_nonce`)
 
 ### Data Handling
@@ -52,4 +52,4 @@ True RUM Monitor is built with a privacy-first, security-conscious architecture:
 
 ## Scope
 
-This policy applies to the True RUM Monitor WordPress plugin source code hosted at [github.com/Mudrava/True-RUM-Monitor](https://github.com/Mudrava/True-RUM-Monitor).
+This policy applies to the Mudrava RUM WordPress plugin source code hosted at [github.com/Mudrava/Mudrava-RUM](https://github.com/Mudrava/Mudrava-RUM).

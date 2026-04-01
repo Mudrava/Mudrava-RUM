@@ -1,8 +1,8 @@
 <?php
 /**
- * Admin UI for True RUM Monitor.
+ * Admin UI for Mudrava RUM.
  *
- * @package TrueRUMMonitor
+ * @package MudravaRUM
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -10,23 +10,23 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Admin UI class for True RUM Monitor.
+ * Admin UI class for Mudrava RUM.
  */
-class TRM_Admin {
+class MDVRM_Admin {
 
 	/**
 	 * Plugin reference.
 	 *
-	 * @var TRM_Plugin
+	 * @var MDVRM_Plugin
 	 */
 	protected $plugin;
 
 	/**
 	 * Constructor.
 	 *
-	 * @param TRM_Plugin $plugin Plugin instance.
+	 * @param MDVRM_Plugin $plugin Plugin instance.
 	 */
-	public function __construct( TRM_Plugin $plugin ) {
+	public function __construct( MDVRM_Plugin $plugin ) {
 		$this->plugin = $plugin;
 	}
 
@@ -43,30 +43,30 @@ class TRM_Admin {
 	 */
 	public function add_menu(): void {
 		add_menu_page(
-			'True RUM Monitor',
-			'True RUM',
+			'Mudrava RUM',
+			'Mudrava RUM',
 			'manage_options',
-			'true-rum-monitor',
+			'mudrava-rum',
 			array( $this, 'render_live' ),
 			'dashicons-performance',
 			80
 		);
 
 		add_submenu_page(
-			'true-rum-monitor',
+			'mudrava-rum',
 			'Live Monitor',
 			'Live Monitor',
 			'manage_options',
-			'true-rum-monitor',
+			'mudrava-rum',
 			array( $this, 'render_live' )
 		);
 
 		add_submenu_page(
-			'true-rum-monitor',
+			'mudrava-rum',
 			'Settings',
 			'Settings',
 			'manage_options',
-			'true-rum-monitor-settings',
+			'mudrava-rum-settings',
 			array( $this, 'render_settings' )
 		);
 	}
@@ -77,33 +77,33 @@ class TRM_Admin {
 	 * @param string $hook Current admin page hook.
 	 */
 	public function enqueue_assets( string $hook ): void {
-		if ( strpos( $hook, 'true-rum-monitor' ) === false ) {
+		if ( strpos( $hook, 'mudrava-rum' ) === false ) {
 			return;
 		}
 
-		wp_enqueue_style( 'trm-admin-css', TRM_PLUGIN_URL . 'assets/admin/trm-admin.css', array(), TRM_VERSION );
-		wp_enqueue_script( 'trm-admin-js', TRM_PLUGIN_URL . 'assets/admin/trm-admin.js', array(), TRM_VERSION, true );
+		wp_enqueue_style( 'mdvrm-admin-css', MDVRM_PLUGIN_URL . 'assets/admin/mdvrm-admin.css', array(), MDVRM_VERSION );
+		wp_enqueue_script( 'mdvrm-admin-js', MDVRM_PLUGIN_URL . 'assets/admin/mdvrm-admin.js', array(), MDVRM_VERSION, true );
 
 		wp_localize_script(
-			'trm-admin-js',
-			'TRMAdminSettings',
+			'mdvrm-admin-js',
+			'MDVRMAdminSettings',
 			array(
-				'restUrl'       => get_rest_url( null, 'true-rum/v1/logs' ),
-				'statsUrl'      => get_rest_url( null, 'true-rum/v1/stats' ),
-				'sendReportUrl' => get_rest_url( null, 'true-rum/v1/send-report' ),
+				'restUrl'       => get_rest_url( null, 'mudrava-rum/v1/logs' ),
+				'statsUrl'      => get_rest_url( null, 'mudrava-rum/v1/stats' ),
+				'sendReportUrl' => get_rest_url( null, 'mudrava-rum/v1/send-report' ),
 				'nonce'         => wp_create_nonce( 'wp_rest' ),
 				'i18n'          => array(
-					'loading'   => __( 'Loading…', 'true-rum-monitor' ),
-					'empty'     => __( 'No entries yet.', 'true-rum-monitor' ),
-					'session'   => __( 'Filter by Session ID', 'true-rum-monitor' ),
-					'timestamp' => __( 'Time', 'true-rum-monitor' ),
-					'url'       => __( 'URL', 'true-rum-monitor' ),
-					'ttfb'      => __( 'TTFB', 'true-rum-monitor' ),
-					'lcp'       => __( 'LCP', 'true-rum-monitor' ),
-					'load'      => __( 'Total Load', 'true-rum-monitor' ),
-					'device'    => __( 'Device', 'true-rum-monitor' ),
-					'net'       => __( 'Net', 'true-rum-monitor' ),
-					'country'   => __( 'Country', 'true-rum-monitor' ),
+					'loading'   => __( 'Loading…', 'mudrava-rum' ),
+					'empty'     => __( 'No entries yet.', 'mudrava-rum' ),
+					'session'   => __( 'Filter by Session ID', 'mudrava-rum' ),
+					'timestamp' => __( 'Time', 'mudrava-rum' ),
+					'url'       => __( 'URL', 'mudrava-rum' ),
+					'ttfb'      => __( 'TTFB', 'mudrava-rum' ),
+					'lcp'       => __( 'LCP', 'mudrava-rum' ),
+					'load'      => __( 'Total Load', 'mudrava-rum' ),
+					'device'    => __( 'Device', 'mudrava-rum' ),
+					'net'       => __( 'Net', 'mudrava-rum' ),
+					'country'   => __( 'Country', 'mudrava-rum' ),
 				),
 			)
 		);
@@ -118,45 +118,45 @@ class TRM_Admin {
 		}
 
 		// Preload logs for instant render.
-		$preload = TRM_DB::query_logs(
+		$preload = MDVRM_DB::query_logs(
 			array(
 				'per_page' => 20,
 				'page'     => 1,
 			)
 		);
 		?>
-		<div class="wrap trm-wrap">
-			<div class="trm-header">
+		<div class="wrap mdvrm-wrap">
+			<div class="mdvrm-header">
 				<div>
-					<h1>True RUM Monitor</h1>
-					<div class="trm-header-info">
+					<h1>Mudrava RUM</h1>
+					<div class="mdvrm-header-info">
 						<p>Real User Monitoring (RUM) captures performance metrics from actual visitors.</p>
 					</div>
 				</div>
-				<div class="trm-actions">
-					<a href="<?php echo esc_url( admin_url( 'admin.php?page=true-rum-monitor-settings' ) ); ?>" class="button button-primary">Settings</a>
+				<div class="mdvrm-actions">
+					<a href="<?php echo esc_url( admin_url( 'admin.php?page=mudrava-rum-settings' ) ); ?>" class="button button-primary">Settings</a>
 				</div>
 			</div>
 
-			<div class="trm-info-cards">
-				<div class="trm-card-metric">
+			<div class="mdvrm-info-cards">
+				<div class="mdvrm-card-metric">
 					<h3>TTFB (Time to First Byte)</h3>
 					<p>Time from request start until the first byte of response. High TTFB means slow server/PHP/database.</p>
-					<div class="trm-goal">Target: &lt; 0.8s</div>
+					<div class="mdvrm-goal">Target: &lt; 0.8s</div>
 				</div>
-				<div class="trm-card-metric">
+				<div class="mdvrm-card-metric">
 					<h3>LCP (Largest Contentful Paint)</h3>
 					<p>Time until the main content is visible. Affected by TTFB, render-blocking JS/CSS, and image size.</p>
-					<div class="trm-goal">Target: &lt; 2.5s</div>
+					<div class="mdvrm-goal">Target: &lt; 2.5s</div>
 				</div>
-				<div class="trm-card-metric">
+				<div class="mdvrm-card-metric">
 					<h3>Server Gen Time</h3>
 					<p>How long PHP took to generate the HTML. Pure backend execution time (excludes network latency).</p>
-					<div class="trm-goal">Target: &lt; 0.5s</div>
+					<div class="mdvrm-goal">Target: &lt; 0.5s</div>
 				</div>
 			</div>
 			
-			<div id="trm-live-log" class="trm-live-log" data-preload="<?php echo esc_attr( wp_json_encode( $preload ) ); ?>"></div>
+			<div id="mdvrm-live-log" class="mdvrm-live-log" data-preload="<?php echo esc_attr( wp_json_encode( $preload ) ); ?>"></div>
 		</div>
 		<?php
 		$this->render_footer();
@@ -173,129 +173,129 @@ class TRM_Admin {
 		$message  = '';
 		$settings = $this->plugin->settings()->all();
 
-		if ( isset( $_POST['trm_settings_nonce'] ) && wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['trm_settings_nonce'] ) ), 'trm_save_settings' ) ) {
-			// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Each field sanitized in TRM_Settings::update().
+		if ( isset( $_POST['mdvrm_settings_nonce'] ) && wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['mdvrm_settings_nonce'] ) ), 'mdvrm_save_settings' ) ) {
+			// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Each field sanitized in MDVRM_Settings::update().
 			$data = wp_unslash( $_POST );
 			if ( ! isset( $data['excluded_roles'] ) ) {
 				$data['excluded_roles'] = array();
 			}
 			$settings = $this->plugin->settings()->update( $data );
-			$message  = __( 'Settings saved.', 'true-rum-monitor' );
+			$message  = __( 'Settings saved.', 'mudrava-rum' );
 		}
 
 		$wp_roles  = wp_roles();
 		$all_roles = $wp_roles->get_names();
 		?>
-		<div class="wrap trm-wrap">
-			<h1>True RUM Settings</h1>
+		<div class="wrap mdvrm-wrap">
+			<h1>Mudrava RUM Settings</h1>
 			
 			<?php if ( $message ) : ?>
 				<div class="notice notice-success"><p><?php echo esc_html( $message ); ?></p></div>
 			<?php endif; ?>
 
 			<form method="post">
-				<?php wp_nonce_field( 'trm_save_settings', 'trm_settings_nonce' ); ?>
+				<?php wp_nonce_field( 'mdvrm_save_settings', 'mdvrm_settings_nonce' ); ?>
 
-				<div class="trm-settings-section">
+				<div class="mdvrm-settings-section">
 					<h2>Retention Policy</h2>
-					<div class="trm-field-row">
-						<label for="trm-limit">Max Records</label>
+					<div class="mdvrm-field-row">
+						<label for="mdvrm-limit">Max Records</label>
 						<div>
-							<input id="trm-limit" name="limit" type="number" min="100" value="<?php echo esc_attr( $settings['limit'] ); ?>" class="regular-text" />
-							<p class="trm-field-desc">Oldest records are removed when this limit is reached.</p>
+							<input id="mdvrm-limit" name="limit" type="number" min="100" value="<?php echo esc_attr( $settings['limit'] ); ?>" class="regular-text" />
+							<p class="mdvrm-field-desc">Oldest records are removed when this limit is reached.</p>
 						</div>
 					</div>
-					<div class="trm-field-row">
-						<label for="trm-retention">Retention Limit (Days)</label>
+					<div class="mdvrm-field-row">
+						<label for="mdvrm-retention">Retention Limit (Days)</label>
 						<div>
-							<input id="trm-retention" name="retention_days" type="number" min="1" value="<?php echo esc_attr( $settings['retention_days'] ); ?>" class="regular-text" />
-							<p class="trm-field-desc">Logs older than this will be purged automatically.</p>
+							<input id="mdvrm-retention" name="retention_days" type="number" min="1" value="<?php echo esc_attr( $settings['retention_days'] ); ?>" class="regular-text" />
+							<p class="mdvrm-field-desc">Logs older than this will be purged automatically.</p>
 						</div>
 					</div>
 				</div>
 
-				<div class="trm-settings-section">
+				<div class="mdvrm-settings-section">
 					<h2>Tracking Rules</h2>
-					<div class="trm-field-row">
-						<label for="trm-sample">Sampling Rate</label>
+					<div class="mdvrm-field-row">
+						<label for="mdvrm-sample">Sampling Rate</label>
 						<div>
-							<select id="trm-sample" name="sample_rate" class="regular-text">
+							<select id="mdvrm-sample" name="sample_rate" class="regular-text">
 								<option value="1" <?php selected( $settings['sample_rate'], 1.0 ); ?>>100% (All traffic)</option>
 								<option value="0.5" <?php selected( $settings['sample_rate'], 0.5 ); ?>>50%</option>
 								<option value="0.1" <?php selected( $settings['sample_rate'], 0.1 ); ?>>10%</option>
 							</select>
 						</div>
 					</div>
-					<div class="trm-field-row">
+					<div class="mdvrm-field-row">
 						<label>Excluded Roles</label>
-						<div class="trm-checkbox-list">
+						<div class="mdvrm-checkbox-list">
 							<?php foreach ( $all_roles as $role_key => $role_name ) : ?>
-								<label class="trm-checkbox-item">
+								<label class="mdvrm-checkbox-item">
 									<input type="checkbox" name="excluded_roles[]" value="<?php echo esc_attr( $role_key ); ?>" <?php checked( in_array( $role_key, (array) $settings['excluded_roles'], true ) ); ?> />
 									<?php echo esc_html( $role_name ); ?>
 								</label>
 							<?php endforeach; ?>
 						</div>
-						<p class="trm-field-desc">Users with these roles will not be tracked.</p>
+						<p class="mdvrm-field-desc">Users with these roles will not be tracked.</p>
 					</div>
-					<div class="trm-field-row">
-						<label for="trm-blacklist">Blacklist URLs</label>
+					<div class="mdvrm-field-row">
+						<label for="mdvrm-blacklist">Blacklist URLs</label>
 						<div>
-							<textarea id="trm-blacklist" name="blacklist" rows="4" class="large-text code" placeholder="/wp-admin&#10;/checkout"><?php echo esc_textarea( implode( "\n", $settings['blacklist'] ) ); ?></textarea>
-							<p class="trm-field-desc">Enter URL prefixes to ignore (one per line).</p>
+							<textarea id="mdvrm-blacklist" name="blacklist" rows="4" class="large-text code" placeholder="/wp-admin&#10;/checkout"><?php echo esc_textarea( implode( "\n", $settings['blacklist'] ) ); ?></textarea>
+							<p class="mdvrm-field-desc">Enter URL prefixes to ignore (one per line).</p>
 						</div>
 					</div>
 				</div>
 
-				<div class="trm-settings-section">
+				<div class="mdvrm-settings-section">
 					<h2>Email Reports</h2>
-					<div class="trm-field-row">
-						<label for="trm-report">Schedule</label>
+					<div class="mdvrm-field-row">
+						<label for="mdvrm-report">Schedule</label>
 						<div>
-							<select id="trm-report" name="report_schedule" class="regular-text">
+							<select id="mdvrm-report" name="report_schedule" class="regular-text">
 								<option value="daily" <?php selected( $settings['report_schedule'], 'daily' ); ?>>Daily</option>
 								<option value="weekly" <?php selected( $settings['report_schedule'], 'weekly' ); ?>>Weekly</option>
 							</select>
 						</div>
 					</div>
-					<div class="trm-field-row">
-						<label for="trm-recipient">Recipient Email</label>
+					<div class="mdvrm-field-row">
+						<label for="mdvrm-recipient">Recipient Email</label>
 						<div>
-							<input id="trm-recipient" name="alert_recipient" type="email" value="<?php echo esc_attr( $settings['alert_recipient'] ); ?>" class="regular-text" style="vertical-align:middle;margin-right:10px;" />
-							<button type="button" id="trm-send-test-email" class="button button-secondary">Test Email</button>
-							<p class="trm-field-desc">Where to send performance summaries and alerts.</p>
+							<input id="mdvrm-recipient" name="alert_recipient" type="email" value="<?php echo esc_attr( $settings['alert_recipient'] ); ?>" class="regular-text" style="vertical-align:middle;margin-right:10px;" />
+							<button type="button" id="mdvrm-send-test-email" class="button button-secondary">Test Email</button>
+							<p class="mdvrm-field-desc">Where to send performance summaries and alerts.</p>
 						</div>
 					</div>
 				</div>
 
-				<div class="trm-settings-section">
+				<div class="mdvrm-settings-section">
 					<h2>Critical Alerts</h2>
-					<div class="trm-field-row">
-						<label for="trm-ttfb">TTFB Threshold (seconds)</label>
+					<div class="mdvrm-field-row">
+						<label for="mdvrm-ttfb">TTFB Threshold (seconds)</label>
 						<div>
-							<input id="trm-ttfb" name="alert_ttfb_threshold" type="number" step="0.1" min="0" value="<?php echo esc_attr( $settings['alert_ttfb_threshold'] ); ?>" class="small-text" />
-							<p class="trm-field-desc">Trigger an alert if server response time exceeds this value.</p>
+							<input id="mdvrm-ttfb" name="alert_ttfb_threshold" type="number" step="0.1" min="0" value="<?php echo esc_attr( $settings['alert_ttfb_threshold'] ); ?>" class="small-text" />
+							<p class="mdvrm-field-desc">Trigger an alert if server response time exceeds this value.</p>
 						</div>
 					</div>
-					<div class="trm-field-row">
-						<label for="trm-consecutive">Trigger Logic</label>
+					<div class="mdvrm-field-row">
+						<label for="mdvrm-consecutive">Trigger Logic</label>
 						<div>
-							<input id="trm-consecutive" name="alert_consecutive" type="number" min="1" value="<?php echo esc_attr( $settings['alert_consecutive'] ); ?>" class="small-text" />
+							<input id="mdvrm-consecutive" name="alert_consecutive" type="number" min="1" value="<?php echo esc_attr( $settings['alert_consecutive'] ); ?>" class="small-text" />
 							<span class="description"> consecutive requests</span>
-							<p class="trm-field-desc">How many slow requests in a row trigger the alert.</p>
+							<p class="mdvrm-field-desc">How many slow requests in a row trigger the alert.</p>
 						</div>
 					</div>
-					<div class="trm-field-row">
-						<label for="trm-cooldown">Cooldown (seconds)</label>
+					<div class="mdvrm-field-row">
+						<label for="mdvrm-cooldown">Cooldown (seconds)</label>
 						<div>
-							<input id="trm-cooldown" name="alert_min_interval" type="number" min="300" value="<?php echo esc_attr( $settings['alert_min_interval'] ); ?>" class="small-text" />
-							<p class="trm-field-desc">Minimum time between email alerts to avoid spamming.</p>
+							<input id="mdvrm-cooldown" name="alert_min_interval" type="number" min="300" value="<?php echo esc_attr( $settings['alert_min_interval'] ); ?>" class="small-text" />
+							<p class="mdvrm-field-desc">Minimum time between email alerts to avoid spamming.</p>
 						</div>
 					</div>
 				</div>
 
 				<p class="submit">
-					<button type="submit" class="button button-primary button-large"><?php esc_html_e( 'Save Settings', 'true-rum-monitor' ); ?></button>
+					<button type="submit" class="button button-primary button-large"><?php esc_html_e( 'Save Settings', 'mudrava-rum' ); ?></button>
 				</p>
 			</form>
 		</div>
@@ -308,10 +308,10 @@ class TRM_Admin {
 	 */
 	private function render_footer(): void {
 		?>
-		<div class="trm-footer">
-			<div class="trm-footer__brand">
+		<div class="mdvrm-footer">
+			<div class="mdvrm-footer__brand">
 				<a href="https://mudrava.com" target="_blank" rel="noopener">
-					<svg class="trm-footer__logo" width="120" height="24" viewBox="0 0 497 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+					<svg class="mdvrm-footer__logo" width="120" height="24" viewBox="0 0 497 100" fill="none" xmlns="http://www.w3.org/2000/svg">
 						<path d="M497 100H0V0H497V100Z" fill="#021D69"></path>
 						<path d="M17.24 20.832V17.952H34.904L62.552 76.704L59.384 84H46.904L17.24 20.832ZM71.48 56.256H71.096L64.664 71.808L56.408 54.144L71.48 17.952H89.72V84H71.48V56.256ZM17.24 30.336L34.904 67.968V84H17.24V30.336Z" fill="white"></path>
 						<path d="M129.057 84.768C122.337 84.768 117.153 84.224 113.505 83.136C109.857 82.048 107.169 80.288 105.441 77.856C103.841 75.616 102.849 72.768 102.465 69.312C102.081 65.856 101.889 60.704 101.889 53.856V17.952H121.089V57.696C121.089 60.064 121.153 62.336 121.281 64.512C121.409 66.24 121.697 67.488 122.145 68.256C122.593 69.024 123.361 69.504 124.449 69.696C125.409 69.952 126.945 70.08 129.057 70.08H131.266C131.777 70.08 132.354 70.016 132.993 69.888V84.672C132.546 84.736 131.905 84.768 131.073 84.768H129.057ZM137.025 17.952H156.225V53.856C156.225 60.128 156.097 64.864 155.841 68.064C155.585 71.264 154.881 73.952 153.729 76.128C152.449 78.624 150.497 80.544 147.873 81.888C145.249 83.232 141.633 84.096 137.025 84.48V17.952Z" fill="white"></path>
@@ -323,12 +323,12 @@ class TRM_Admin {
 					</svg>
 				</a>
 			</div>
-			<div class="trm-footer__info">
-				<span class="trm-footer__copy">&copy; <?php echo esc_html( gmdate( 'Y' ) ); ?> MUDRAVA. All rights reserved.</span>
-				<span class="trm-footer__sep">&middot;</span>
-				<a class="trm-footer__link" href="https://mudrava.com" target="_blank" rel="noopener">mudrava.com</a>
-				<span class="trm-footer__sep">&middot;</span>
-				<a class="trm-footer__link" href="mailto:support@mudrava.com">support@mudrava.com</a>
+			<div class="mdvrm-footer__info">
+				<span class="mdvrm-footer__copy">&copy; <?php echo esc_html( gmdate( 'Y' ) ); ?> MUDRAVA. All rights reserved.</span>
+				<span class="mdvrm-footer__sep">&middot;</span>
+				<a class="mdvrm-footer__link" href="https://mudrava.com" target="_blank" rel="noopener">mudrava.com</a>
+				<span class="mdvrm-footer__sep">&middot;</span>
+				<a class="mdvrm-footer__link" href="mailto:support@mudrava.com">support@mudrava.com</a>
 			</div>
 		</div>
 		<?php

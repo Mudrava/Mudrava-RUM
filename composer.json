@@ -1,5 +1,5 @@
 {
-	"name": "mudrava/true-rum-monitor",
+	"name": "mudrava/mudrava-rum",
 	"description": "Real User Monitoring (RUM) plugin for WordPress.",
 	"type": "wordpress-plugin",
 	"license": "GPL-2.0-or-later",

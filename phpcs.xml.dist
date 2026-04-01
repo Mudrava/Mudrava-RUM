@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
-<ruleset name="True RUM Monitor">
-	<description>Coding standards for True RUM Monitor WordPress plugin.</description>
+<ruleset name="Mudrava RUM">
+	<description>Coding standards for Mudrava RUM WordPress plugin.</description>
 
 	<file>.</file>
 
@@ -23,7 +23,7 @@
 	<rule ref="WordPress.WP.I18n">
 		<properties>
 			<property name="text_domain" type="array">
-				<element value="true-rum-monitor"/>
+				<element value="mudrava-rum"/>
 			</property>
 		</properties>
 	</rule>

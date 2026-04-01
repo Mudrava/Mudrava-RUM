@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to True RUM Monitor will be documented in this file.
+All notable changes to Mudrava RUM will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
@@ -28,9 +28,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - LCP tracking via PerformanceObserver API
 - Navigation Timing API v2 with v1 fallback
 - Color-coded performance indicators in admin UI
-- Developer hooks: `trm_loaded`, `trm_should_track_request`, `trm_before_insert`, `trm_collector_settings`, `trm_report_email_body`
+- Developer hooks: `mdvrm_loaded`, `mdvrm_should_track_request`, `mdvrm_before_insert`, `mdvrm_collector_settings`, `mdvrm_report_email_body`
 - Privacy-first design: no PII, no cookies, no external services
 - PHPCS/WPCS coding standards configuration
 - Full uninstall cleanup (table, options, cron)
 
-[0.1.8]: https://github.com/Mudrava/True-RUM-Monitor/releases/tag/v0.1.8
+[0.1.8]: https://github.com/Mudrava/Mudrava-RUM/releases/tag/v0.1.8

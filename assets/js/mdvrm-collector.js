@@ -5,12 +5,12 @@
         return;
     }
 
-    const cfg = window.TRMCollectorSettings || {};
+    const cfg = window.MDVRMCollectorSettings || {};
     if (!cfg.restUrl || !cfg.nonce) {
         return;
     }
 
-    const sessionKey = cfg.sessionKey || 'trm_session_id';
+    const sessionKey = cfg.sessionKey || 'mdvrm_session_id';
     const sessionId = ensureSession();
 
     let lcpTime = null;
@@ -43,7 +43,7 @@
         if (window.crypto && window.crypto.randomUUID) {
             return window.crypto.randomUUID();
         }
-        return 'trm-' + Math.random().toString(16).slice(2) + '-' + Date.now();
+        return 'mdvrm-' + Math.random().toString(16).slice(2) + '-' + Date.now();
     }
 
     function getNavigationTimings() {
@@ -127,7 +127,7 @@
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-TRM-Nonce': cfg.nonce
+                    'X-MDVRM-Nonce': cfg.nonce
                 },
                 body: JSON.stringify(payload),
                 keepalive: true,
@@ -138,7 +138,7 @@
             // We append token to URL but use a custom param to avoid WP Core conflict
             const blob = new Blob([JSON.stringify(payload)], { type: 'application/json' });
             const url = new URL(cfg.restUrl);
-            url.searchParams.set('trm_token', cfg.nonce);
+            url.searchParams.set('mdvrm_token', cfg.nonce);
             window.navigator.sendBeacon(url.toString(), blob);
         }
     }

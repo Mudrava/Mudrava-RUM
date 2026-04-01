@@ -1,8 +1,8 @@
 <?php
 /**
- * Settings manager for True RUM Monitor.
+ * Settings manager for Mudrava RUM.
  *
- * @package TrueRUMMonitor
+ * @package MudravaRUM
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -10,16 +10,16 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Settings manager class for True RUM Monitor.
+ * Settings manager class for Mudrava RUM.
  */
-class TRM_Settings {
+class MDVRM_Settings {
 
 	/**
 	 * Option key.
 	 *
 	 * @var string
 	 */
-	const OPTION_KEY = 'trm_settings';
+	const OPTION_KEY = 'mdvrm_settings';
 
 	/**
 	 * Default settings.

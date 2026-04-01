@@ -1,8 +1,8 @@
 <?php
 /**
- * Reports and alerts for True RUM Monitor.
+ * Reports and alerts for Mudrava RUM.
  *
- * @package TrueRUMMonitor
+ * @package MudravaRUM
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -10,28 +10,28 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Reports and alerts class for True RUM Monitor.
+ * Reports and alerts class for Mudrava RUM.
  */
-class TRM_Reports {
+class MDVRM_Reports {
 
 	/**
 	 * Cron hook name.
 	 */
-	const CRON_HOOK = 'trm_reports_cron';
+	const CRON_HOOK = 'mdvrm_reports_cron';
 
 	/**
 	 * Plugin reference.
 	 *
-	 * @var TRM_Plugin
+	 * @var MDVRM_Plugin
 	 */
 	protected $plugin;
 
 	/**
 	 * Constructor.
 	 *
-	 * @param TRM_Plugin $plugin Plugin instance.
+	 * @param MDVRM_Plugin $plugin Plugin instance.
 	 */
-	public function __construct( TRM_Plugin $plugin ) {
+	public function __construct( MDVRM_Plugin $plugin ) {
 		$this->plugin = $plugin;
 	}
 
@@ -61,9 +61,9 @@ class TRM_Reports {
 	public function register_schedule( array $schedules ): array {
 		$interval = $this->get_interval_seconds();
 
-		$schedules['trm_interval'] = array(
+		$schedules['mdvrm_interval'] = array(
 			'interval' => $interval,
-			'display'  => __( 'True RUM Monitor interval', 'true-rum-monitor' ),
+			'display'  => __( 'Mudrava RUM interval', 'mudrava-rum' ),
 		);
 
 		return $schedules;
@@ -74,7 +74,7 @@ class TRM_Reports {
 	 */
 	protected function ensure_scheduled(): void {
 		$interval         = $this->get_interval_seconds();
-		$last_interval    = (int) get_option( 'trm_last_interval', 0 );
+		$last_interval    = (int) get_option( 'mdvrm_last_interval', 0 );
 		$needs_reschedule = ( $last_interval !== $interval );
 
 		if ( $needs_reschedule ) {
@@ -82,11 +82,11 @@ class TRM_Reports {
 		}
 
 		if ( ! wp_next_scheduled( self::CRON_HOOK ) ) {
-			wp_schedule_event( time() + MINUTE_IN_SECONDS, 'trm_interval', self::CRON_HOOK );
+			wp_schedule_event( time() + MINUTE_IN_SECONDS, 'mdvrm_interval', self::CRON_HOOK );
 		}
 
 		if ( $needs_reschedule ) {
-			update_option( 'trm_last_interval', $interval );
+			update_option( 'mdvrm_last_interval', $interval );
 		}
 	}
 
@@ -105,8 +105,8 @@ class TRM_Reports {
 	 */
 	public function run_cron(): void {
 		$settings = $this->plugin->settings()->all();
-		TRM_DB::purge_older_than( $settings['retention_days'] );
-		TRM_DB::enforce_limit( $settings['limit'] );
+		MDVRM_DB::purge_older_than( $settings['retention_days'] );
+		MDVRM_DB::enforce_limit( $settings['limit'] );
 
 		$this->send_report();
 		$this->check_alerts();
@@ -126,7 +126,7 @@ class TRM_Reports {
 			return false;
 		}
 
-		$table = TRM_TABLE;
+		$table = MDVRM_TABLE;
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$avg = $wpdb->get_row( $wpdb->prepare( 'SELECT AVG(ttfb) as ttfb, AVG(lcp) as lcp, AVG(total_load) as total_load FROM %i', $table ), ARRAY_A );
 
@@ -141,7 +141,7 @@ class TRM_Reports {
 		$devices = $wpdb->get_results( $wpdb->prepare( 'SELECT device, COUNT(*) as hits FROM %i GROUP BY device', $table ), ARRAY_A );
 
 		$site_name = get_bloginfo( 'name' );
-		$body      = "True RUM Monitor Report for {$site_name}\n";
+		$body      = "Mudrava RUM Report for {$site_name}\n";
 		$body     .= "--------------------------------------------------\n";
 		$body     .= sprintf( "Avg LCP (User Exp):  %.3fs\nAvg TTFB (Server):   %.3fs\nAvg Total Load:      %.3fs\n\n", $avg_lcp, $avg_ttfb, $avg_total );
 
@@ -167,9 +167,9 @@ class TRM_Reports {
 		 * @param string $recipient Recipient email address.
 		 * @param array  $avg       Average metrics.
 		 */
-		$body = apply_filters( 'trm_report_email_body', $body, $recipient, $avg );
+		$body = apply_filters( 'mdvrm_report_email_body', $body, $recipient, $avg );
 
-		return wp_mail( $recipient, "True RUM Report: {$site_name}", $body );
+		return wp_mail( $recipient, "Mudrava RUM Report: {$site_name}", $body );
 	}
 
 	/**
@@ -188,7 +188,7 @@ class TRM_Reports {
 		}
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-		$rows = $wpdb->get_col( $wpdb->prepare( 'SELECT ttfb FROM %i ORDER BY event_time DESC LIMIT %d', TRM_TABLE, max( 20, $consecutive ) ) );
+		$rows = $wpdb->get_col( $wpdb->prepare( 'SELECT ttfb FROM %i ORDER BY event_time DESC LIMIT %d', MDVRM_TABLE, max( 20, $consecutive ) ) );
 
 		$streak = 0;
 		foreach ( (array) $rows as $ttfb ) {
@@ -203,7 +203,7 @@ class TRM_Reports {
 			return;
 		}
 
-		$last_alert = get_option( 'trm_last_alert_ts', 0 );
+		$last_alert = get_option( 'mdvrm_last_alert_ts', 0 );
 		$now        = time();
 		if ( $now - $last_alert < absint( $settings['alert_min_interval'] ) ) {
 			return;
@@ -213,6 +213,6 @@ class TRM_Reports {
 		$body    = sprintf( '%d consecutive requests exceeded %.2fs TTFB.', $streak, $threshold );
 
 		wp_mail( $recipient, $subject, $body );
-		update_option( 'trm_last_alert_ts', $now );
+		update_option( 'mdvrm_last_alert_ts', $now );
 	}
 }

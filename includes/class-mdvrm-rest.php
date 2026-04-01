@@ -1,8 +1,8 @@
 <?php
 /**
- * REST API endpoints for True RUM Monitor.
+ * REST API endpoints for Mudrava RUM.
  *
- * @package TrueRUMMonitor
+ * @package MudravaRUM
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -10,28 +10,28 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * REST API endpoints class for True RUM Monitor.
+ * REST API endpoints class for Mudrava RUM.
  */
-class TRM_REST {
+class MDVRM_REST {
 
 	/**
 	 * REST namespace.
 	 */
-	const NS = 'true-rum/v1';
+	const NS = 'mudrava-rum/v1';
 
 	/**
 	 * Plugin reference.
 	 *
-	 * @var TRM_Plugin
+	 * @var MDVRM_Plugin
 	 */
 	protected $plugin;
 
 	/**
 	 * Constructor.
 	 *
-	 * @param TRM_Plugin $plugin Plugin instance.
+	 * @param MDVRM_Plugin $plugin Plugin instance.
 	 */
-	public function __construct( TRM_Plugin $plugin ) {
+	public function __construct( MDVRM_Plugin $plugin ) {
 		$this->plugin = $plugin;
 	}
 
@@ -195,7 +195,7 @@ class TRM_REST {
 	/**
 	 * Nonce verification for public collector.
 	 *
-	 * Uses Header 'X-TRM-Nonce' or query param 'trm_token'.
+	 * Uses Header 'X-MDVRM-Nonce' or query param 'mdvrm_token'.
 	 * Avoids '_wpnonce' to bypass Core's premature cookie auth checks.
 	 * Restores the logged-in user from cookies before verification,
 	 * because WP REST API resets user to 0 when cookies are sent
@@ -206,11 +206,11 @@ class TRM_REST {
 	public function verify_custom_nonce(): bool {
 		$nonce = null;
 
-		if ( isset( $_SERVER['HTTP_X_TRM_NONCE'] ) ) {
-			$nonce = sanitize_text_field( wp_unslash( $_SERVER['HTTP_X_TRM_NONCE'] ) );
-		} elseif ( isset( $_GET['trm_token'] ) ) {
+		if ( isset( $_SERVER['HTTP_X_MDVRM_NONCE'] ) ) {
+			$nonce = sanitize_text_field( wp_unslash( $_SERVER['HTTP_X_MDVRM_NONCE'] ) );
+		} elseif ( isset( $_GET['mdvrm_token'] ) ) {
 			// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- This IS the nonce check.
-			$nonce = sanitize_text_field( wp_unslash( $_GET['trm_token'] ) );
+			$nonce = sanitize_text_field( wp_unslash( $_GET['mdvrm_token'] ) );
 		}
 
 		if ( ! $nonce ) {
@@ -226,7 +226,7 @@ class TRM_REST {
 			}
 		}
 
-		return (bool) wp_verify_nonce( $nonce, 'trm_collect' );
+		return (bool) wp_verify_nonce( $nonce, 'mdvrm_collect' );
 	}
 
 	/**
@@ -238,7 +238,7 @@ class TRM_REST {
 	public function collect( WP_REST_Request $request ) {
 		// Validation of custom header manual to avoid core rest_cookie_invalid_nonce interference.
 		if ( ! $this->verify_custom_nonce() ) {
-			return new WP_Error( 'trm_forbidden', __( 'Invalid security token', 'true-rum-monitor' ), array( 'status' => 403 ) );
+			return new WP_Error( 'mdvrm_forbidden', __( 'Invalid security token', 'mudrava-rum' ), array( 'status' => 403 ) );
 		}
 
 		if ( ! $this->plugin->should_track_request() ) {
@@ -247,12 +247,12 @@ class TRM_REST {
 
 		$body = $request->get_body();
 		if ( empty( $body ) ) {
-			return new WP_Error( 'trm_empty', __( 'Empty payload', 'true-rum-monitor' ), array( 'status' => 400 ) );
+			return new WP_Error( 'mdvrm_empty', __( 'Empty payload', 'mudrava-rum' ), array( 'status' => 400 ) );
 		}
 
 		$payload = json_decode( $body, true );
 		if ( ! is_array( $payload ) ) {
-			return new WP_Error( 'trm_json_error', __( 'Invalid JSON', 'true-rum-monitor' ), array( 'status' => 400 ) );
+			return new WP_Error( 'mdvrm_json_error', __( 'Invalid JSON', 'mudrava-rum' ), array( 'status' => 400 ) );
 		}
 
 		$row = array(
@@ -271,7 +271,7 @@ class TRM_REST {
 			'meta'        => array(),
 		);
 
-		TRM_DB::insert( $row );
+		MDVRM_DB::insert( $row );
 
 		return new WP_REST_Response( array( 'status' => 'ok' ), 201 );
 	}
@@ -284,7 +284,7 @@ class TRM_REST {
 	 */
 	public function logs( WP_REST_Request $request ): WP_REST_Response {
 		$filter_params = $this->get_filter_params( $request );
-		$data          = TRM_DB::query_logs( $filter_params );
+		$data          = MDVRM_DB::query_logs( $filter_params );
 
 		return new WP_REST_Response( $data, 200 );
 	}
@@ -297,7 +297,7 @@ class TRM_REST {
 	 */
 	public function stats( WP_REST_Request $request ): WP_REST_Response {
 		$filter_params = $this->get_filter_params( $request );
-		$data          = TRM_DB::get_stats( $filter_params );
+		$data          = MDVRM_DB::get_stats( $filter_params );
 
 		return new WP_REST_Response( $data, 200 );
 	}

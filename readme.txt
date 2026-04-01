@@ -1,4 +1,4 @@
-=== True RUM Monitor ===
+=== MUDRAVA RUM ===
 Contributors: mudrava
 Tags: rum, performance, monitoring, web-vitals, lcp
 Requires at least: 6.2
@@ -12,7 +12,7 @@ Real User Monitoring (RUM) plugin for WordPress that tracks TTFB, LCP, server ge
 
 == Description ==
 
-True RUM Monitor captures real user performance data from your WordPress site visitors. Unlike synthetic testing tools, this plugin measures actual user experience including Time to First Byte (TTFB), Largest Contentful Paint (LCP), server generation time, total page load time, and more.
+MUDRAVA RUM captures real user performance data from your WordPress site visitors. Unlike synthetic testing tools, this plugin measures actual user experience including Time to First Byte (TTFB), Largest Contentful Paint (LCP), server generation time, total page load time, and more.
 
 **Features:**
 
@@ -33,15 +33,15 @@ A lightweight JavaScript collector runs on your site's frontend, gathering Core 
 
 **Links:**
 
-* [Plugin page](https://mudrava.com/en/projects/true-rum-monitor-wordpress-plugin/)
-* [GitHub repository](https://github.com/Mudrava/True-RUM-Monitor)
+* [Plugin page](https://mudrava.com/en/projects/mudrava-rum-wordpress-plugin/)
+* [GitHub repository](https://github.com/Mudrava/Mudrava-RUM)
 
 == Installation ==
 
-1. Upload the `true-rum-monitor` folder to the `/wp-content/plugins/` directory.
+1. Upload the `mudrava-rum` folder to the `/wp-content/plugins/` directory.
 2. Activate the plugin through the 'Plugins' menu in WordPress.
-3. Go to True RUM > Settings to configure sampling rate, excluded roles, and email reports.
-4. Visit True RUM > Live Monitor to view incoming performance data.
+3. Go to Mudrava RUM > Settings to configure sampling rate, excluded roles, and email reports.
+4. Visit Mudrava RUM > Live Monitor to view incoming performance data.
 
 == Frequently Asked Questions ==
 
@@ -67,7 +67,7 @@ Data is stored in a custom database table with automatic retention management. Y
 
 = Where can I see the reports? =
 
-Go to True RUM > Live Monitor in your WordPress admin. Click "Generate Report" for aggregated statistics. You can also configure scheduled email reports in Settings.
+Go to Mudrava RUM > Live Monitor in your WordPress admin. Click "Generate Report" for aggregated statistics. You can also configure scheduled email reports in Settings.
 
 == Screenshots ==
 

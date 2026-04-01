@@ -2,8 +2,8 @@
 # This file is distributed under the GPLv2 or later.
 msgid ""
 msgstr ""
-"Project-Id-Version: True RUM Monitor 0.1.8\n"
-"Report-Msgid-Bugs-To: https://github.com/Mudrava/True-RUM-Monitor/issues\n"
+"Project-Id-Version: Mudrava RUM 0.1.8\n"
+"Report-Msgid-Bugs-To: https://github.com/Mudrava/Mudrava-RUM/issues\n"
 "POT-Creation-Date: 2026-03-20 00:00:00+00:00\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -12,80 +12,80 @@ msgstr ""
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "X-Generator: hand-crafted\n"
-"X-Domain: true-rum-monitor\n"
+"X-Domain: mudrava-rum\n"
 
 #. Plugin Name of the plugin
-msgid "True RUM Monitor"
+msgid "Mudrava RUM"
 msgstr ""
 
 #. Description of the plugin
 msgid "Real User Monitoring (RUM) for WordPress websites to track performance metrics and user experience."
 msgstr ""
 
-#: includes/class-trm-rest.php:230
+#: includes/class-mdvrm-rest.php:230
 msgid "Invalid security token"
 msgstr ""
 
-#: includes/class-trm-rest.php:239
+#: includes/class-mdvrm-rest.php:239
 msgid "Empty payload"
 msgstr ""
 
-#: includes/class-trm-rest.php:244
+#: includes/class-mdvrm-rest.php:244
 msgid "Invalid JSON"
 msgstr ""
 
-#: includes/class-trm-admin.php:69
+#: includes/class-mdvrm-admin.php:69
 msgid "Loading\u2026"
 msgstr ""
 
-#: includes/class-trm-admin.php:70
+#: includes/class-mdvrm-admin.php:70
 msgid "No entries yet."
 msgstr ""
 
-#: includes/class-trm-admin.php:71
+#: includes/class-mdvrm-admin.php:71
 msgid "Filter by Session ID"
 msgstr ""
 
-#: includes/class-trm-admin.php:72
+#: includes/class-mdvrm-admin.php:72
 msgid "Time"
 msgstr ""
 
-#: includes/class-trm-admin.php:73
+#: includes/class-mdvrm-admin.php:73
 msgid "URL"
 msgstr ""
 
-#: includes/class-trm-admin.php:74
+#: includes/class-mdvrm-admin.php:74
 msgid "TTFB"
 msgstr ""
 
-#: includes/class-trm-admin.php:75
+#: includes/class-mdvrm-admin.php:75
 msgid "LCP"
 msgstr ""
 
-#: includes/class-trm-admin.php:76
+#: includes/class-mdvrm-admin.php:76
 msgid "Total Load"
 msgstr ""
 
-#: includes/class-trm-admin.php:77
+#: includes/class-mdvrm-admin.php:77
 msgid "Device"
 msgstr ""
 
-#: includes/class-trm-admin.php:78
+#: includes/class-mdvrm-admin.php:78
 msgid "Net"
 msgstr ""
 
-#: includes/class-trm-admin.php:79
+#: includes/class-mdvrm-admin.php:79
 msgid "Country"
 msgstr ""
 
-#: includes/class-trm-admin.php:150
+#: includes/class-mdvrm-admin.php:150
 msgid "Settings saved."
 msgstr ""
 
-#: includes/class-trm-admin.php:265
+#: includes/class-mdvrm-admin.php:265
 msgid "Save Settings"
 msgstr ""
 
-#: includes/class-trm-reports.php:62
-msgid "True RUM Monitor interval"
+#: includes/class-mdvrm-reports.php:62
+msgid "Mudrava RUM interval"
 msgstr ""

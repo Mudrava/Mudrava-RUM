@@ -1,10 +1,10 @@
 (function () {
     'use strict';
 
-    const cfg = window.TRMAdminSettings || {};
+    const cfg = window.MDVRMAdminSettings || {};
 
     // 1. Settings Page Handler
-    const testEmailBtn = document.getElementById('trm-send-test-email');
+    const testEmailBtn = document.getElementById('mdvrm-send-test-email');
     if (testEmailBtn) {
         testEmailBtn.addEventListener('click', () => {
             if (!confirm('Send a test report now? This will use the email saved in settings.')) return;
@@ -29,7 +29,7 @@
     }
 
     // 2. Live Log Page Handler
-    const root = document.getElementById('trm-live-log');
+    const root = document.getElementById('mdvrm-live-log');
     if (!root || !cfg.restUrl) {
         return;
     }
@@ -114,7 +114,7 @@
 
 
     const perPageSelect = document.createElement('select');
-    perPageSelect.className = 'trm-per-page';
+    perPageSelect.className = 'mdvrm-per-page';
     [20, 50, 100, 200].forEach(num => {
         const opt = document.createElement('option');
         opt.value = num;
@@ -136,7 +136,7 @@
     toolbar.appendChild(paginationBox);
 
     const tableWrap = document.createElement('div');
-    tableWrap.className = 'trm-table-wrap';
+    tableWrap.className = 'mdvrm-table-wrap';
     root.appendChild(tableWrap);
 
     // Bottom pagination
@@ -230,16 +230,16 @@
 
     function renderModal(stats) {
         const overlay = document.createElement('div');
-        overlay.className = 'trm-modal-overlay';
+        overlay.className = 'mdvrm-modal-overlay';
         
         const modal = document.createElement('div');
-        modal.className = 'trm-modal';
+        modal.className = 'mdvrm-modal';
         // Increase max height to separate scroll
         modal.style.maxHeight = '90vh';
         modal.style.overflowY = 'auto';
 
         const close = document.createElement('button');
-        close.className = 'trm-modal-close';
+        close.className = 'mdvrm-modal-close';
         close.innerHTML = '&times;';
         close.onclick = () => document.body.removeChild(overlay);
         modal.appendChild(close);
@@ -260,7 +260,7 @@
         modal.appendChild(sub);
 
         const grid = document.createElement('div');
-        grid.className = 'trm-report-grid';
+        grid.className = 'mdvrm-report-grid';
 
         const metrics = [
             { label: 'Avg TTFB', val: stats.avg_ttfb + 's' },
@@ -273,13 +273,13 @@
 
         metrics.forEach(m => {
             const box = document.createElement('div');
-            box.className = 'trm-stat-box';
+            box.className = 'mdvrm-stat-box';
             const valDiv = document.createElement('div');
-            valDiv.className = 'trm-stat-value';
+            valDiv.className = 'mdvrm-stat-value';
             valDiv.textContent = m.val;
             box.appendChild(valDiv);
             const labelDiv = document.createElement('div');
-            labelDiv.className = 'trm-stat-label';
+            labelDiv.className = 'mdvrm-stat-label';
             labelDiv.textContent = m.label;
             box.appendChild(labelDiv);
             grid.appendChild(box);
@@ -320,7 +320,7 @@
                 row.appendChild(urlTd);
 
                 const lcpTd = document.createElement('td');
-                lcpTd.className = 'trm-metric-poor';
+                lcpTd.className = 'mdvrm-metric-poor';
                 lcpTd.textContent = Number(r.avg_lcp).toFixed(3) + 's';
                 row.appendChild(lcpTd);
 
@@ -389,7 +389,7 @@
 
         window.fetch(url.toString(), {
             headers: {
-                'X-TRM-Nonce': '1', 
+                'X-MDVRM-Nonce': '1', 
                 'X-WP-Nonce': cfg.nonce
             },
         })
@@ -401,7 +401,7 @@
                 renderPaginationInBox(paginationBoxBottom);
             })
             .catch((err) => {
-                console.error('TRM fetch error', err);
+                console.error('MDVRM fetch error', err);
             })
             .finally(() => {
                 applyBtn.disabled = false;
@@ -622,9 +622,9 @@
             poor = thresholds.poor || thresholds.meh;
         }
 
-        if (value <= good) return 'trm-metric-good';
-        if (value <= poor) return 'trm-metric-needs-improvement';
-        return 'trm-metric-poor';
+        if (value <= good) return 'mdvrm-metric-good';
+        if (value <= poor) return 'mdvrm-metric-needs-improvement';
+        return 'mdvrm-metric-poor';
     }
 
     function toggleSort(key) {

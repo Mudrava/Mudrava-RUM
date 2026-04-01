@@ -1,17 +1,17 @@
 <p align="center">
-  <a href="https://mudrava.com/en/projects/true-rum-monitor-wordpress-plugin/">
-    <img src=".wordpress-org/banner-1544x500.png" alt="True RUM Monitor — Real User Monitoring for WordPress" />
+  <a href="https://mudrava.com/en/projects/mudrava-rum-wordpress-plugin/">
+    <img src=".wordpress-org/banner-1544x500.png" alt="Mudrava RUM — Real User Monitoring for WordPress" />
   </a>
 </p>
 
-<h1 align="center">True RUM Monitor</h1>
+<h1 align="center">Mudrava RUM</h1>
 
 <p align="center">
   Real User Monitoring for WordPress — track actual visitor performance, not synthetic benchmarks.
 </p>
 
 <p align="center">
-  <a href="https://wordpress.org/plugins/true-rum-monitor/"><img src="https://img.shields.io/badge/WordPress-6.2%2B-blue?logo=wordpress" alt="WordPress 6.2+"></a>
+  <a href="https://wordpress.org/plugins/mudrava-rum/"><img src="https://img.shields.io/badge/WordPress-6.2%2B-blue?logo=wordpress" alt="WordPress 6.2+"></a>
   <a href="https://www.php.net/"><img src="https://img.shields.io/badge/PHP-7.4%2B-777BB4?logo=php&logoColor=white" alt="PHP 7.4+"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-GPLv2-green" alt="GPL-2.0-or-later"></a>
   <a href="https://mudrava.com"><img src="https://img.shields.io/badge/by-MUDRAVA-021D69" alt="MUDRAVA"></a>
@@ -19,11 +19,11 @@
 
 ---
 
-## Why True RUM?
+## Why Mudrava RUM?
 
-Synthetic tools like Lighthouse and PageSpeed Insights test from a single location under ideal conditions. **True RUM Monitor** captures what your real visitors actually experience — across devices, networks, and geographies.
+Synthetic tools like Lighthouse and PageSpeed Insights test from a single location under ideal conditions. **Mudrava RUM** captures what your real visitors actually experience — across devices, networks, and geographies.
 
-| Synthetic Testing | True RUM Monitor |
+| Synthetic Testing | Mudrava RUM |
 |---|---|
 | Lab environment | Real user data |
 | Single location | Global visitors |
@@ -46,7 +46,7 @@ Synthetic tools like Lighthouse and PageSpeed Insights test from a single locati
 
 ## Screenshots
 
-> Screenshots are available on the [WordPress.org plugin page](https://wordpress.org/plugins/true-rum-monitor/).
+> Screenshots are available on the [WordPress.org plugin page](https://wordpress.org/plugins/mudrava-rum/).
 
 **Live Monitor** — filterable real-time performance log with color-coded metrics.
 
@@ -63,10 +63,10 @@ Synthetic tools like Lighthouse and PageSpeed Insights test from a single locati
 
 ## Installation
 
-1. Upload the `true-rum-monitor` folder to `/wp-content/plugins/`.
+1. Upload the `mudrava-rum` folder to `/wp-content/plugins/`.
 2. Activate via **Plugins → Installed Plugins**.
-3. Go to **True RUM → Settings** to configure sampling, retention, and alerts.
-4. Visit **True RUM → Live Monitor** to see incoming data.
+3. Go to **Mudrava RUM → Settings** to configure sampling, retention, and alerts.
+4. Visit **Mudrava RUM → Live Monitor** to see incoming data.
 
 No theme edits required. The frontend collector loads automatically.
 
@@ -74,36 +74,36 @@ No theme edits required. The frontend collector loads automatically.
 
 | Endpoint | Method | Auth | Description |
 |---|---|---|---|
-| `/wp-json/true-rum/v1/collect` | POST | Nonce | Ingestion endpoint for collector JS |
-| `/wp-json/true-rum/v1/logs` | GET | `manage_options` | Paginated log query with filters |
-| `/wp-json/true-rum/v1/stats` | GET | `manage_options` | Aggregated statistics |
-| `/wp-json/true-rum/v1/send-report` | POST | `manage_options` | Trigger email report |
+| `/wp-json/mudrava-rum/v1/collect` | POST | Nonce | Ingestion endpoint for collector JS |
+| `/wp-json/mudrava-rum/v1/logs` | GET | `manage_options` | Paginated log query with filters |
+| `/wp-json/mudrava-rum/v1/stats` | GET | `manage_options` | Aggregated statistics |
+| `/wp-json/mudrava-rum/v1/send-report` | POST | `manage_options` | Trigger email report |
 
 ## Hooks for Developers
 
 ```php
 // Filter whether to track a request
-add_filter( 'trm_should_track_request', function ( $track, $settings ) {
+add_filter( 'mdvrm_should_track_request', function ( $track, $settings ) {
     return $track;
 }, 10, 2 );
 
 // Modify log data before insertion
-add_filter( 'trm_before_insert', function ( $row ) {
+add_filter( 'mdvrm_before_insert', function ( $row ) {
     return $row;
 } );
 
 // Filter collector settings for frontend JS
-add_filter( 'trm_collector_settings', function ( $localize ) {
+add_filter( 'mdvrm_collector_settings', function ( $localize ) {
     return $localize;
 } );
 
 // Customize email report content
-add_filter( 'trm_report_email_body', function ( $body, $recipient, $avg ) {
+add_filter( 'mdvrm_report_email_body', function ( $body, $recipient, $avg ) {
     return $body;
 }, 10, 3 );
 
 // Action after plugin is fully loaded
-do_action( 'trm_loaded', $plugin );
+do_action( 'mdvrm_loaded', $plugin );
 ```
 
 ## Data Collected

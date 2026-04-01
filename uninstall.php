@@ -1,8 +1,8 @@
 <?php
 /**
- * Uninstall cleanup for True RUM Monitor.
+ * Uninstall cleanup for Mudrava RUM.
  *
- * @package TrueRUMMonitor
+ * @package MudravaRUM
  */
 
 if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
@@ -10,12 +10,12 @@ if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
 }
 
 global $wpdb;
-$table = $wpdb->prefix . 'true_rum_logs';
+$table = $wpdb->prefix . 'mdvrm_logs';
 // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
 $wpdb->query( $wpdb->prepare( 'DROP TABLE IF EXISTS %i', $table ) );
 
-delete_option( 'trm_settings' );
-delete_option( 'trm_last_interval' );
-delete_option( 'trm_last_alert_ts' );
+delete_option( 'mdvrm_settings' );
+delete_option( 'mdvrm_last_interval' );
+delete_option( 'mdvrm_last_alert_ts' );
 
-wp_clear_scheduled_hook( 'trm_reports_cron' );
+wp_clear_scheduled_hook( 'mdvrm_reports_cron' );

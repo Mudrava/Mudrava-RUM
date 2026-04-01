@@ -1,72 +1,72 @@
 <?php
 /**
- * Core bootstrap for True RUM Monitor.
+ * Core bootstrap for Mudrava RUM.
  *
- * @package TrueRUMMonitor
+ * @package MudravaRUM
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-require_once TRM_PLUGIN_DIR . 'includes/class-trm-settings.php';
-require_once TRM_PLUGIN_DIR . 'includes/class-trm-db.php';
-require_once TRM_PLUGIN_DIR . 'includes/class-trm-rest.php';
-require_once TRM_PLUGIN_DIR . 'includes/class-trm-collector.php';
-require_once TRM_PLUGIN_DIR . 'includes/class-trm-admin.php';
-require_once TRM_PLUGIN_DIR . 'includes/class-trm-reports.php';
+require_once MDVRM_PLUGIN_DIR . 'includes/class-mdvrm-settings.php';
+require_once MDVRM_PLUGIN_DIR . 'includes/class-mdvrm-db.php';
+require_once MDVRM_PLUGIN_DIR . 'includes/class-mdvrm-rest.php';
+require_once MDVRM_PLUGIN_DIR . 'includes/class-mdvrm-collector.php';
+require_once MDVRM_PLUGIN_DIR . 'includes/class-mdvrm-admin.php';
+require_once MDVRM_PLUGIN_DIR . 'includes/class-mdvrm-reports.php';
 
 /**
- * Core bootstrap class for True RUM Monitor.
+ * Core bootstrap class for Mudrava RUM.
  */
-class TRM_Plugin {
+class MDVRM_Plugin {
 
 	/**
 	 * Singleton instance.
 	 *
-	 * @var TRM_Plugin|null
+	 * @var MDVRM_Plugin|null
 	 */
 	protected static $instance = null;
 
 	/**
 	 * Settings handler.
 	 *
-	 * @var TRM_Settings
+	 * @var MDVRM_Settings
 	 */
 	protected $settings;
 
 	/**
 	 * Collector instance.
 	 *
-	 * @var TRM_Collector
+	 * @var MDVRM_Collector
 	 */
 	protected $collector;
 
 	/**
 	 * REST handler.
 	 *
-	 * @var TRM_REST
+	 * @var MDVRM_REST
 	 */
 	protected $rest;
 
 	/**
 	 * Admin UI handler.
 	 *
-	 * @var TRM_Admin
+	 * @var MDVRM_Admin
 	 */
 	protected $admin;
 
 	/**
 	 * Reports/alerts handler.
 	 *
-	 * @var TRM_Reports
+	 * @var MDVRM_Reports
 	 */
 	protected $reports;
 
 	/**
 	 * Get singleton.
 	 *
-	 * @return TRM_Plugin
+	 * @return MDVRM_Plugin
 	 */
 	public static function instance(): self {
 		if ( is_null( self::$instance ) ) {
@@ -80,11 +80,11 @@ class TRM_Plugin {
 	 * Constructor.
 	 */
 	protected function __construct() {
-		$this->settings  = new TRM_Settings();
-		$this->collector = new TRM_Collector( $this );
-		$this->rest      = new TRM_REST( $this );
-		$this->admin     = new TRM_Admin( $this );
-		$this->reports   = new TRM_Reports( $this );
+		$this->settings  = new MDVRM_Settings();
+		$this->collector = new MDVRM_Collector( $this );
+		$this->rest      = new MDVRM_REST( $this );
+		$this->admin     = new MDVRM_Admin( $this );
+		$this->reports   = new MDVRM_Reports( $this );
 
 		add_action( 'init', array( $this, 'init' ) );
 	}
@@ -101,18 +101,18 @@ class TRM_Plugin {
 		add_action( 'admin_init', array( $this, 'register_privacy_content' ) );
 
 		/**
-		 * Fires after True RUM Monitor is fully loaded.
+		 * Fires after Mudrava RUM is fully loaded.
 		 *
-		 * @param TRM_Plugin $plugin Plugin instance.
+		 * @param MDVRM_Plugin $plugin Plugin instance.
 		 */
-		do_action( 'trm_loaded', $this );
+		do_action( 'mdvrm_loaded', $this );
 	}
 
 	/**
 	 * Activation handler.
 	 */
 	public static function activate(): void {
-		TRM_DB::create_table();
+		MDVRM_DB::create_table();
 
 		$instance = self::instance();
 		$instance->reports->register_cron();
@@ -122,15 +122,15 @@ class TRM_Plugin {
 	 * Deactivation handler.
 	 */
 	public static function deactivate(): void {
-		wp_clear_scheduled_hook( TRM_Reports::CRON_HOOK );
+		wp_clear_scheduled_hook( MDVRM_Reports::CRON_HOOK );
 	}
 
 	/**
 	 * Get settings handler.
 	 *
-	 * @return TRM_Settings
+	 * @return MDVRM_Settings
 	 */
-	public function settings(): TRM_Settings {
+	public function settings(): MDVRM_Settings {
 		return $this->settings;
 	}
 
@@ -144,21 +144,21 @@ class TRM_Plugin {
 
 		$content = sprintf(
 			'<h2>%s</h2><p>%s</p><p>%s</p><p>%s</p>',
-			__( 'True RUM Monitor', 'true-rum-monitor' ),
-			__( 'This plugin collects anonymized performance metrics (page load times, device type, network type) from site visitors. No personally identifiable information (PII) is collected or stored.', 'true-rum-monitor' ),
-			__( 'Session IDs are randomly generated per browser tab using sessionStorage and are not linked to user accounts. No cookies are set. No data is sent to external services — all collected data is stored locally in your WordPress database.', 'true-rum-monitor' ),
-			__( 'Collected data is automatically purged based on configured retention settings.', 'true-rum-monitor' )
+			__( 'Mudrava RUM', 'mudrava-rum' ),
+			__( 'This plugin collects anonymized performance metrics (page load times, device type, network type) from site visitors. No personally identifiable information (PII) is collected or stored.', 'mudrava-rum' ),
+			__( 'Session IDs are randomly generated per browser tab using sessionStorage and are not linked to user accounts. No cookies are set. No data is sent to external services — all collected data is stored locally in your WordPress database.', 'mudrava-rum' ),
+			__( 'Collected data is automatically purged based on configured retention settings.', 'mudrava-rum' )
 		);
 
-		wp_add_privacy_policy_content( 'True RUM Monitor', wp_kses_post( $content ) );
+		wp_add_privacy_policy_content( 'Mudrava RUM', wp_kses_post( $content ) );
 	}
 
 	/**
 	 * Get reports handler.
 	 *
-	 * @return TRM_Reports
+	 * @return MDVRM_Reports
 	 */
-	public function reports(): TRM_Reports {
+	public function reports(): MDVRM_Reports {
 		return $this->reports;
 	}
 
@@ -197,7 +197,7 @@ class TRM_Plugin {
 		 * @param bool  $track    Whether to track the request.
 		 * @param array $settings Current plugin settings.
 		 */
-		return apply_filters( 'trm_should_track_request', true, $settings );
+		return apply_filters( 'mdvrm_should_track_request', true, $settings );
 	}
 
 	/**
