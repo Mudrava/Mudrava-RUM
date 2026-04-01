@@ -88,7 +88,12 @@
         }
 
         const timings = getNavigationTimings();
-        
+
+        // Skip if load event hasn't fired yet (timings incomplete).
+        if (timings.load <= 0) {
+            return;
+        }
+
         // Detect stale server_time (Cached Page)
         // If PHP reported generating time is longer than the entire document fetch time, 
         // it means the HTML was served from cache with an old timestamp.
@@ -107,7 +112,7 @@
 
         const payload = {
             event_time: cfg.timestamp,
-            url: window.location.href, // More reliable than pathname
+            url: window.location.href,
             server_time: serverTime,
             ttfb: Number(timings.ttfb || 0),
             lcp: Number(lcpTime || 0),
@@ -121,8 +126,14 @@
 
         sent = true;
 
-        // Use fetch with keepalive as the modern standard for RUM
-        if (window.fetch) {
+        // Use sendBeacon as primary — it's designed for page-unload data and
+        // doesn't require custom headers.  Append nonce as a query param.
+        if (window.navigator.sendBeacon) {
+            const blob = new Blob([JSON.stringify(payload)], { type: 'application/json' });
+            const url = new URL(cfg.restUrl);
+            url.searchParams.set('mdvrm_token', cfg.nonce);
+            window.navigator.sendBeacon(url.toString(), blob);
+        } else if (window.fetch) {
             fetch(cfg.restUrl, {
                 method: 'POST',
                 headers: {
@@ -130,24 +141,29 @@
                     'X-MDVRM-Nonce': cfg.nonce
                 },
                 body: JSON.stringify(payload),
-                keepalive: true,
-                priority: 'low'
-            }).catch(() => {});
-        } else if (window.navigator.sendBeacon) {
-            // Fallback for older browsers (no custom headers support in sendBeacon usually)
-            // We append token to URL but use a custom param to avoid WP Core conflict
-            const blob = new Blob([JSON.stringify(payload)], { type: 'application/json' });
-            const url = new URL(cfg.restUrl);
-            url.searchParams.set('mdvrm_token', cfg.nonce);
-            window.navigator.sendBeacon(url.toString(), blob);
+                keepalive: true
+            }).catch(function () {});
         }
     }
 
-    // Capture before unload to ensure data is sent even on navigation
-    const eventName = 'visibilitychange';
-    document.addEventListener(eventName, function() {
+    // Primary trigger: after load + 3 s delay so LCP stabilizes.
+    function onLoaded() {
+        setTimeout(sendPayload, 3000);
+    }
+
+    if (document.readyState === 'complete') {
+        onLoaded();
+    } else {
+        window.addEventListener('load', onLoaded);
+    }
+
+    // Backup: capture quick bounces (user leaves before load + 3 s).
+    document.addEventListener('visibilitychange', function () {
         if (document.visibilityState === 'hidden') {
             sendPayload();
         }
     });
+
+    // Backup: pagehide is more reliable than visibilitychange in some browsers.
+    window.addEventListener('pagehide', sendPayload);
 })();
