@@ -4,6 +4,14 @@ All notable changes to Mudrava RUM will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.2.0] — 2026-04-01
+
+### Changed
+
+- Renamed plugin from "True RUM Monitor" to "Mudrava RUM"
+- Updated slug to `mudrava-rum`, prefix to `mdvrm_`, text domain to `mudrava-rum`
+- Updated all class names, function names, constants, hooks, and file names
+
 ## [0.1.8] — 2026-03-20
 
 ### Added
@@ -33,4 +41,5 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - PHPCS/WPCS coding standards configuration
 - Full uninstall cleanup (table, options, cron)
 
+[0.2.0]: https://github.com/Mudrava/Mudrava-RUM/releases/tag/v0.2.0
 [0.1.8]: https://github.com/Mudrava/Mudrava-RUM/releases/tag/v0.1.8

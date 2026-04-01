@@ -3,7 +3,7 @@ Contributors: mudrava
 Tags: rum, performance, monitoring, web-vitals, lcp
 Requires at least: 6.2
 Tested up to: 6.9
-Stable tag: 0.1.8
+Stable tag: 0.2.0
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -95,6 +95,10 @@ Collected data is automatically purged based on your configured retention settin
 
 == Changelog ==
 
+= 0.2.0 =
+* Renamed plugin from "True RUM Monitor" to "Mudrava RUM"
+* Updated all prefixes, text domain, and slug to mudrava-rum / mdvrm_
+
 = 0.1.8 =
 * Initial public release
 * Live Monitor with real-time log viewing and filtering
@@ -104,6 +108,9 @@ Collected data is automatically purged based on your configured retention settin
 * REST API endpoints for data collection and retrieval
 
 == Upgrade Notice ==
+
+= 0.2.0 =
+Renamed plugin. Updated slug, prefixes, and text domain.
 
 = 0.1.8 =
 Initial release.
