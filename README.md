@@ -14,7 +14,7 @@
   <a href="https://wordpress.org/plugins/mudrava-rum/"><img src="https://img.shields.io/badge/WordPress-6.2%2B-blue?logo=wordpress" alt="WordPress 6.2+"></a>
   <a href="https://www.php.net/"><img src="https://img.shields.io/badge/PHP-7.4%2B-777BB4?logo=php&logoColor=white" alt="PHP 7.4+"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-GPLv2-green" alt="GPL-2.0-or-later"></a>
-  <a href="https://mudrava.com"><img src="https://img.shields.io/badge/by-MUDRAVA-021D69" alt="MUDRAVA"></a>
+  <a href="https://mudrava.com/en/"><img src="https://img.shields.io/badge/by-MUDRAVA-021D69" alt="MUDRAVA"></a>
 </p>
 
 ---
@@ -153,7 +153,7 @@ GPL-2.0-or-later — see [LICENSE](LICENSE) for details.
 
 ## Credits
 
-Built by [MUDRAVA](https://mudrava.com) — a digital product studio specializing in WordPress, web performance, and design systems.
+Built by [MUDRAVA](https://mudrava.com/en/) — a digital product studio specializing in WordPress, web performance, and design systems.
 
-- [mudrava.com](https://mudrava.com)
+- [mudrava.com](https://mudrava.com/en/)
 - [support@mudrava.com](mailto:support@mudrava.com)
