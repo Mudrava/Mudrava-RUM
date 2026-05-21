@@ -2,7 +2,7 @@
 Contributors: mudrava
 Tags: rum, performance, monitoring, web-vitals, lcp
 Requires at least: 6.2
-Tested up to: 6.9
+Tested up to: 7.0
 Stable tag: 0.2.0
 Requires PHP: 7.4
 License: GPLv2 or later
