@@ -233,9 +233,10 @@ class MDVRM_REST {
 	 */
 	protected function rate_limited( string $scope = '' ): bool {
 		$remote = isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : '';
-		$ip     = filter_var( $remote, FILTER_VALIDATE_IP ) ? $remote : '';
+		$remote = filter_var( $remote, FILTER_VALIDATE_IP ) ? $remote : '';
+		$ip     = '';
 
-		if ( empty( $ip ) && 1 === (int) $this->plugin->settings()->get( 'trust_cf' ) && isset( $_SERVER['HTTP_CF_CONNECTING_IP'] ) ) {
+		if ( 1 === (int) $this->plugin->settings()->get( 'trust_cf' ) && isset( $_SERVER['HTTP_CF_CONNECTING_IP'] ) ) {
 			$cf = sanitize_text_field( wp_unslash( $_SERVER['HTTP_CF_CONNECTING_IP'] ) );
 			if ( filter_var( $cf, FILTER_VALIDATE_IP ) ) {
 				$ip = $cf;
@@ -248,6 +249,10 @@ class MDVRM_REST {
 			if ( filter_var( $first, FILTER_VALIDATE_IP ) ) {
 				$ip = $first;
 			}
+		}
+
+		if ( empty( $ip ) ) {
+			$ip = $remote;
 		}
 
 		$identity = $ip ? $ip : ( $scope ? 'sess:' . $scope : 'unknown' );
