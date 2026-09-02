@@ -2,9 +2,11 @@
 <ruleset name="Mudrava RUM">
 	<description>Coding standards for Mudrava RUM WordPress plugin.</description>
 
-	<file>.</file>
+	<file>plugin/</file>
 
 	<exclude-pattern>/vendor/*</exclude-pattern>
+	<exclude-pattern>/tests/*</exclude-pattern>
+	<exclude-pattern>/.wordpress-org/*</exclude-pattern>
 	<exclude-pattern>/node_modules/*</exclude-pattern>
 	<exclude-pattern>/temp/*</exclude-pattern>
 

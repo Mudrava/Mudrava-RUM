@@ -1,7 +1,7 @@
 (function () {
     'use strict';
 
-    if (!window.navigator || typeof window.navigator.sendBeacon !== 'function') {
+    if (!window.fetch && !(window.navigator && typeof window.navigator.sendBeacon === 'function')) {
         return;
     }
 
@@ -111,7 +111,6 @@
         }
 
         const payload = {
-            event_time: cfg.timestamp,
             url: window.location.href,
             server_time: serverTime,
             ttfb: Number(timings.ttfb || 0),
@@ -126,14 +125,10 @@
 
         sent = true;
 
-        // Use sendBeacon as primary — it's designed for page-unload data and
-        // doesn't require custom headers.  Append nonce as a query param.
-        if (window.navigator.sendBeacon) {
-            const blob = new Blob([JSON.stringify(payload)], { type: 'application/json' });
-            const url = new URL(cfg.restUrl);
-            url.searchParams.set('mdvrm_token', cfg.nonce);
-            window.navigator.sendBeacon(url.toString(), blob);
-        } else if (window.fetch) {
+        // Prefer fetch with keepalive + nonce header so the credential never
+        // appears in URLs or server access logs. sendBeacon stays only as a
+        // fallback for browsers without fetch.
+        if (window.fetch) {
             fetch(cfg.restUrl, {
                 method: 'POST',
                 headers: {
@@ -143,6 +138,10 @@
                 body: JSON.stringify(payload),
                 keepalive: true
             }).catch(function () {});
+        } else if (window.navigator.sendBeacon) {
+            const body = Object.assign({}, payload, { mdvrm_token: cfg.nonce });
+            const blob = new Blob([JSON.stringify(body)], { type: 'application/json' });
+            window.navigator.sendBeacon(cfg.restUrl, blob);
         }
     }
 

@@ -78,6 +78,9 @@ class MDVRM_Plugin {
 
 	/**
 	 * Constructor.
+	 *
+	 * Hooks are registered here (plugins_loaded time) so that the WP-Cron
+	 * handler is available before core fires wp_cron() on init.
 	 */
 	protected function __construct() {
 		$this->settings  = new MDVRM_Settings();
@@ -86,18 +89,12 @@ class MDVRM_Plugin {
 		$this->admin     = new MDVRM_Admin( $this );
 		$this->reports   = new MDVRM_Reports( $this );
 
-		add_action( 'init', array( $this, 'init' ) );
-	}
-
-	/**
-	 * Init hooks.
-	 */
-	public function init(): void {
 		$this->collector->hook();
 		$this->rest->hook();
 		$this->admin->hook();
 		$this->reports->hook();
 
+		add_action( 'admin_init', array( $this, 'maybe_upgrade' ) );
 		add_action( 'admin_init', array( $this, 'register_privacy_content' ) );
 
 		/**
@@ -113,9 +110,21 @@ class MDVRM_Plugin {
 	 */
 	public static function activate(): void {
 		MDVRM_DB::create_table();
+		update_option( 'mdvrm_version', MDVRM_VERSION );
 
 		$instance = self::instance();
 		$instance->reports->register_cron();
+	}
+
+	/**
+	 * Re-run schema migrations when the plugin version changed.
+	 */
+	public function maybe_upgrade(): void {
+		$installed = get_option( 'mdvrm_version', '0' );
+		if ( version_compare( $installed, MDVRM_VERSION, '<' ) ) {
+			MDVRM_DB::create_table();
+			update_option( 'mdvrm_version', MDVRM_VERSION );
+		}
 	}
 
 	/**
@@ -135,6 +144,15 @@ class MDVRM_Plugin {
 	}
 
 	/**
+	 * Get reports handler.
+	 *
+	 * @return MDVRM_Reports
+	 */
+	public function reports(): MDVRM_Reports {
+		return $this->reports;
+	}
+
+	/**
 	 * Register privacy policy suggested content.
 	 */
 	public function register_privacy_content(): void {
@@ -145,7 +163,7 @@ class MDVRM_Plugin {
 		$content = sprintf(
 			'<h2>%s</h2><p>%s</p><p>%s</p><p>%s</p>',
 			__( 'Mudrava RUM', 'mudrava-rum' ),
-			__( 'This plugin collects anonymized performance metrics (page load times, device type, network type) from site visitors. No personally identifiable information (PII) is collected or stored.', 'mudrava-rum' ),
+			__( 'This plugin collects anonymized performance metrics (page load times, device type, network type, country derived from Cloudflare headers, and the visited page URL without query string) from site visitors. No personally identifiable information (PII) is collected or stored.', 'mudrava-rum' ),
 			__( 'Session IDs are randomly generated per browser tab using sessionStorage and are not linked to user accounts. No cookies are set. No data is sent to external services — all collected data is stored locally in your WordPress database.', 'mudrava-rum' ),
 			__( 'Collected data is automatically purged based on configured retention settings.', 'mudrava-rum' )
 		);
@@ -154,16 +172,10 @@ class MDVRM_Plugin {
 	}
 
 	/**
-	 * Get reports handler.
-	 *
-	 * @return MDVRM_Reports
-	 */
-	public function reports(): MDVRM_Reports {
-		return $this->reports;
-	}
-
-	/**
 	 * Check if request should be sampled and recorded.
+	 *
+	 * The decision is made once per page render. Sampling is intentionally
+	 * NOT repeated at ingestion time.
 	 *
 	 * @return bool
 	 */
@@ -181,7 +193,11 @@ class MDVRM_Plugin {
 		$path      = (string) wp_parse_url( $raw_uri, PHP_URL_PATH );
 		$blacklist = $settings['blacklist'];
 		foreach ( $blacklist as $prefix ) {
-			if ( $prefix && 0 === strpos( $path, $prefix ) ) {
+			$prefix = rtrim( (string) $prefix, '/' );
+			if ( '' === $prefix ) {
+				continue;
+			}
+			if ( $path === $prefix || 0 === strpos( $path, $prefix . '/' ) ) {
 				return false;
 			}
 		}
@@ -207,8 +223,12 @@ class MDVRM_Plugin {
 	 */
 	public function get_server_context(): array {
 		$server_time = $this->get_server_time();
-		$memory_peak = memory_get_peak_usage();
-		$country     = isset( $_SERVER['HTTP_CF_IPCOUNTRY'] ) ? sanitize_text_field( wp_unslash( $_SERVER['HTTP_CF_IPCOUNTRY'] ) ) : '';
+		$memory_peak = memory_get_peak_usage( true );
+		$country     = isset( $_SERVER['HTTP_CF_IPCOUNTRY'] ) ? strtoupper( sanitize_text_field( wp_unslash( $_SERVER['HTTP_CF_IPCOUNTRY'] ) ) ) : '';
+
+		if ( ! preg_match( '/^[A-Z]{2}$/', $country ) ) {
+			$country = '';
+		}
 
 		return array(
 			'serverTime' => $server_time,
@@ -225,15 +245,12 @@ class MDVRM_Plugin {
 	protected function get_server_time(): float {
 		$now = microtime( true );
 
-		// Use REQUEST_TIME_FLOAT if available (most reliable for total generic time).
 		if ( isset( $_SERVER['REQUEST_TIME_FLOAT'] ) ) {
 			// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash -- Numeric timestamp, cast to float.
 			$start = (float) $_SERVER['REQUEST_TIME_FLOAT'];
 		} elseif ( ! empty( $GLOBALS['timestart'] ) ) {
-			// Fallback to WP global start time.
 			$start = (float) $GLOBALS['timestart'];
 		} else {
-			// Last resort: assume 0 latency (should not happen in WP).
 			$start = $now;
 		}
 

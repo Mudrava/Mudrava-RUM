@@ -25,3 +25,8 @@ error_log
 # Temporary
 temp/
 tmp/
+
+# Local tool cache
+.tools/
+.npm-cache/
+.playwright-mcp/

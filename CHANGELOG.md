@@ -4,6 +4,30 @@ All notable changes to Mudrava RUM will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.0.0] — 2026-09-02
+
+### Added
+
+- Native WP-standard admin UI: flat hairline KPI strip, unified 32px controls, custom select chevrons
+- Auto-refresh rendered as a native-feeling switch chip in the toolbar row
+- Device type icons (desktop/tablet/mobile) in the log table; truncated session IDs now show an ellipsis
+- Clickable session IDs in the log table filter the monitor by the full session
+- Custom SVG plugin icon and wp.org marketing assets (banner 1544x500 / 772x250)
+- Automated test suites under `tests/` with standalone WP harness
+- CI: PHPCS matrix (PHP 7.4/8.0/8.2) and syntax-check workflow
+
+### Changed
+
+- Minified production assets (`mdvrm-admin.min.css/js`, `mdvrm-collector.min.js`) with filemtime cache busting
+- `Tested up to` bumped to WordPress 7.1
+- Regenerated `languages/mudrava-rum.pot` (GPLv2 header, slug-corrected bug reports URL)
+
+### Fixed
+
+- Fatal error on the Settings page when rendering excluded roles (`translate_user_role()` given an array)
+- Session ID filter now matches by prefix (8-char IDs shown in the table) via `LIKE`
+- Admin bar/toolbar vertical rhythm and left-edge alignment on mobile viewports
+
 ## [0.2.0] — 2026-04-01
 
 ### Changed
@@ -41,5 +65,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - PHPCS/WPCS coding standards configuration
 - Full uninstall cleanup (table, options, cron)
 
+[1.0.0]: https://github.com/Mudrava/Mudrava-RUM/releases/tag/v1.0.0
 [0.2.0]: https://github.com/Mudrava/Mudrava-RUM/releases/tag/v0.2.0
 [0.1.8]: https://github.com/Mudrava/Mudrava-RUM/releases/tag/v0.1.8

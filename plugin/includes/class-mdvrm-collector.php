@@ -51,12 +51,16 @@ class MDVRM_Collector {
 		}
 
 		$handle = 'mdvrm-collector';
+		$src    = 'assets/js/mdvrm-collector.min.js';
+		if ( ! file_exists( MDVRM_PLUGIN_DIR . $src ) ) {
+			$src = 'assets/js/mdvrm-collector.js';
+		}
 
 		wp_register_script(
 			$handle,
-			MDVRM_PLUGIN_URL . 'assets/js/mdvrm-collector.js',
+			MDVRM_PLUGIN_URL . $src,
 			array(),
-			MDVRM_VERSION,
+			(string) ( file_exists( MDVRM_PLUGIN_DIR . $src ) ? filemtime( MDVRM_PLUGIN_DIR . $src ) : MDVRM_VERSION ),
 			true
 		);
 
@@ -80,7 +84,6 @@ class MDVRM_Collector {
 		$localize = array(
 			'restUrl'    => esc_url_raw( rest_url( 'mudrava-rum/v1/collect' ) ),
 			'nonce'      => wp_create_nonce( 'mdvrm_collect' ),
-			'timestamp'  => current_time( 'mysql', true ),
 			'server'     => array(
 				'time'       => $context['serverTime'],
 				'memoryPeak' => $context['memoryPeak'],

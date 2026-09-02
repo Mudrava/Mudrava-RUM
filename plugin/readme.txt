@@ -1,9 +1,9 @@
-=== MUDRAVA RUM ===
+=== Mudrava RUM ===
 Contributors: mudrava
 Tags: rum, performance, monitoring, web-vitals, lcp
 Requires at least: 6.2
-Tested up to: 7.0
-Stable tag: 0.2.0
+Tested up to: 7.1
+Stable tag: 1.0.0
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -12,7 +12,7 @@ Real User Monitoring (RUM) plugin for WordPress that tracks TTFB, LCP, server ge
 
 == Description ==
 
-MUDRAVA RUM captures real user performance data from your WordPress site visitors. Unlike synthetic testing tools, this plugin measures actual user experience including Time to First Byte (TTFB), Largest Contentful Paint (LCP), server generation time, total page load time, and more.
+Mudrava RUM captures real user performance data from your WordPress site visitors. Unlike synthetic testing tools, this plugin measures actual user experience including Time to First Byte (TTFB), Largest Contentful Paint (LCP), server generation time, total page load time, and more.
 
 **Features:**
 
@@ -25,7 +25,9 @@ MUDRAVA RUM captures real user performance data from your WordPress site visitor
 * Configurable sampling rate and URL blacklist
 * Role-based exclusion (skip tracking for specific user roles)
 * Automatic data retention management (max records and days)
-* Color-coded performance indicators (good/warning/poor)
+* Color-coded performance indicators aligned with Web Vitals thresholds
+* Daily trend charts and CSV export
+* Responsive admin interface for mobile and desktop
 
 **How It Works:**
 
@@ -59,7 +61,7 @@ No. Country detection uses the Cloudflare CF-IPCountry header if available, but 
 
 = Can I control how much data is collected? =
 
-Yes. You can set a sampling rate (100%, 50%, or 10%), exclude specific user roles, and blacklist URL prefixes in the settings page.
+Yes. You can set a sampling rate (100%, 50%, or 10%), exclude specific user roles, and blacklist URL prefixes in the settings page. Sampling is applied once per page render, and rate limiting protects the ingestion endpoint from flooding.
 
 = How is data stored? =
 
@@ -95,6 +97,17 @@ Collected data is automatically purged based on your configured retention settin
 
 == Changelog ==
 
+= 1.0.0 =
+* Full admin UI redesign: responsive layout, Web Vitals color-coded KPI cards, SVG trend charts, CSV export, accessible controls
+* Fixed WP-Cron scheduling so housekeeping, scheduled reports, and retention purge actually run (hourly housekeeping)
+* Fixed double sampling: the configured rate is now applied exactly once per pageview
+* TTFB alerts now evaluate in real time on each recorded pageview instead of waiting for cron
+* Scheduled email reports now cover the actual reporting period (last 24h / 7 days) instead of all retained data
+* Server-side ingestion timestamp; stricter validation and clamping for all incoming metrics
+* Rate limiting on the ingestion endpoint; URL/device/net/session/country whitelist validation before storage
+* Indexes for device and net filters; faster FIFO eviction with a single DELETE
+* Automated test suite (integration + REST contract tests) and stricter i18n coverage
+
 = 0.2.0 =
 * Renamed plugin from "True RUM Monitor" to "Mudrava RUM"
 * Updated all prefixes, text domain, and slug to mudrava-rum / mdvrm_
@@ -108,6 +121,9 @@ Collected data is automatically purged based on your configured retention settin
 * REST API endpoints for data collection and retrieval
 
 == Upgrade Notice ==
+
+= 1.0.0 =
+Complete admin redesign and reliability fixes (cron, sampling, alerts). Database schema gains two indexes; they are applied automatically on upgrade.
 
 = 0.2.0 =
 Renamed plugin. Updated slug, prefixes, and text domain.

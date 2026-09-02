@@ -32,6 +32,8 @@ class MDVRM_Settings {
 		'sample_rate'          => 1.0,
 		'excluded_roles'       => array( 'administrator', 'editor' ),
 		'blacklist'            => array(),
+		'trust_cf'             => 0,
+		'trust_auth_header'    => 0,
 		'report_schedule'      => 'daily',
 		'alert_ttfb_threshold' => 2.0,
 		'alert_consecutive'    => 5,
@@ -61,6 +63,35 @@ class MDVRM_Settings {
 	 * @param string $key Setting key.
 	 * @return mixed|null
 	 */
+	/**
+	 * Coerce loose user input to a boolean.
+	 *
+	 * @param mixed $value    Raw value.
+	 * @param bool  $fallback Fallback.
+	 * @return bool
+	 */
+	public static function to_bool( $value, bool $fallback = false ): bool {
+		if ( is_bool( $value ) ) {
+			return $value;
+		}
+		if ( is_string( $value ) ) {
+			$v = strtolower( trim( $value ) );
+			if ( in_array( $v, array( '1', 'true', 'yes', 'on' ), true ) ) {
+				return true;
+			}
+			if ( in_array( $v, array( '0', 'false', 'no', 'off', '' ), true ) ) {
+				return false;
+			}
+		}
+		return $fallback;
+	}
+
+	/**
+	 * Get a single setting value.
+	 *
+	 * @param string $key Setting key.
+	 * @return mixed|null
+	 */
 	public function get( string $key ) {
 		$settings = $this->all();
 
@@ -77,22 +108,30 @@ class MDVRM_Settings {
 		$settings = $this->all();
 
 		if ( isset( $data['limit'] ) ) {
-			$settings['limit'] = max( 1, absint( $data['limit'] ) );
+			$settings['limit'] = max( 1, intval( $data['limit'] ) );
 		}
 
 		if ( isset( $data['retention_days'] ) ) {
-			$settings['retention_days'] = max( 1, absint( $data['retention_days'] ) );
+			$settings['retention_days'] = max( 1, intval( $data['retention_days'] ) );
 		}
 
 		if ( isset( $data['sample_rate'] ) ) {
 			$rate                    = floatval( $data['sample_rate'] );
-			$settings['sample_rate'] = max( 0, min( 1, $rate ) );
+			$settings['sample_rate'] = (float) max( 0, min( 1, $rate ) );
 		}
 
 		if ( isset( $data['excluded_roles'] ) ) {
 			$roles                      = is_array( $data['excluded_roles'] ) ? $data['excluded_roles'] : explode( ',', $data['excluded_roles'] );
 			$roles                      = array_map( 'sanitize_text_field', array_map( 'trim', $roles ) );
 			$settings['excluded_roles'] = array_filter( $roles );
+		}
+
+		if ( isset( $data['trust_cf'] ) ) {
+			$settings['trust_cf'] = self::to_bool( $data['trust_cf'], false ) ? 1 : 0;
+		}
+
+		if ( isset( $data['trust_auth_header'] ) ) {
+			$settings['trust_auth_header'] = self::to_bool( $data['trust_auth_header'], false ) ? 1 : 0;
 		}
 
 		if ( isset( $data['blacklist'] ) ) {
