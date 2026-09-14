@@ -110,8 +110,18 @@ wp_clear_scheduled_hook( MDVRM_Reports::CRON_HOOK );
 wp_schedule_event( time() - 10, 'mdvrm_hourly', MDVRM_Reports::CRON_HOOK );
 delete_option( 'mdvrm_last_report_ts' );
 $GLOBALS['mdvrm_mail'] = array();
+mdvrm_settings( array( 'limit' => 10000 ) );
 
+MDVRM_DB::insert( array( 'url' => 'https://e.com/null-ttfb/', 'total_load' => 1, 'lcp' => 1 ) );
+MDVRM_DB::insert( array( 'url' => 'https://e.com/null-ttfb/', 'total_load' => 2, 'lcp' => 1 ) );
+MDVRM_DB::bump_stats_cache();
+
+$report_subject_filter = function ( $subject, $recipient, $site_name, $stats ) {
+		return 'Filtered report subject for ' . $recipient;
+	};
+add_filter( 'mdvrm_report_email_subject', $report_subject_filter, 10, 4 );
 do_action( MDVRM_Reports::CRON_HOOK );
+remove_filter( 'mdvrm_report_email_subject', $report_subject_filter, 10 );
 
 $report = null;
 foreach ( $GLOBALS['mdvrm_mail'] as $m ) {
@@ -120,7 +130,10 @@ foreach ( $GLOBALS['mdvrm_mail'] as $m ) {
 	}
 }
 mdvrm_assert( 'report email sent on cron run', null !== $report );
+mdvrm_assert( 'report subject filter is applied', null !== $report && 'Filtered report subject for rum-alerts@example.com' === $report['subject'] );
 mdvrm_assert( 'report body contains Pageviews', null !== $report && false !== strpos( $report['message'], 'Pageviews:' ) );
+mdvrm_assert( 'report shows missing URL TTFB as placeholder', null !== $report && false !== strpos( $report['message'], '[LCP: 1.000s | TTFB: —] https://e.com/null-ttfb/ (2 hits)' ) );
+mdvrm_assert( 'report does not print missing TTFB as zero', null !== $report && false === strpos( $report['message'], '[LCP: 1.000s | TTFB: 0.000s] https://e.com/null-ttfb/' ) );
 mdvrm_assert( 'report sent to configured recipient', null !== $report && 'rum-alerts@example.com' === $report['to'] );
 mdvrm_assert( 'last_report_ts updated', (int) get_option( 'mdvrm_last_report_ts' ) > 0 );
 
@@ -145,6 +158,10 @@ mdvrm_assert( 'manual send leaves ts untouched', (int) get_option( 'mdvrm_last_r
 $_SERVER['HTTP_X_MDVRM_NONCE'] = $nonce;
 $_SERVER['REMOTE_ADDR']        = '198.51.100.11';
 $GLOBALS['mdvrm_mail']         = array();
+$alert_subject_filter = function ( $subject, $streak, $threshold ) {
+		return 'Filtered alert ' . absint( $streak );
+	};
+add_filter( 'mdvrm_alert_email_subject', $alert_subject_filter, 10, 3 );
 
 $hit = function ( $ttfb ) {
 	$request = new WP_REST_Request( 'POST', '/mudrava-rum/v1/collect' );
@@ -160,14 +177,16 @@ mdvrm_assert( 'fast sample resets streak', 0 === (int) get_option( 'mdvrm_ttfb_s
 $hit( 3.0 );
 $hit( 3.0 );
 $hit( 3.0 );
-$alerts = array_values( array_filter( $GLOBALS['mdvrm_mail'], fn( $m ) => false !== stripos( $m['subject'], 'TTFB' ) ) );
-mdvrm_assert( 'alert fired after 3 consecutive slow', count( $alerts ) >= 1 );
+$alerts = array_values( array_filter( $GLOBALS['mdvrm_mail'], fn( $m ) => 0 === strpos( $m['subject'], 'Filtered alert ' ) ) );
+mdvrm_assert( 'alert fired after 3 consecutive slow', 1 === count( $alerts ) );
+mdvrm_assert( 'alert subject filter is applied', 'Filtered alert 3' === $alerts[0]['subject'] );
 mdvrm_assert( 'streak reset after alert', 0 === (int) get_option( 'mdvrm_ttfb_streak' ) );
 $hit( 3.0 );
 $hit( 3.0 );
 $hit( 3.0 );
-$alerts2 = array_values( array_filter( $GLOBALS['mdvrm_mail'], fn( $m ) => false !== stripos( $m['subject'], 'TTFB' ) ) );
+$alerts2 = array_values( array_filter( $GLOBALS['mdvrm_mail'], fn( $m ) => 0 === strpos( $m['subject'], 'Filtered alert ' ) ) );
 mdvrm_assert( 'cooldown prevents duplicate alerts', count( $alerts2 ) === count( $alerts ) );
+remove_filter( 'mdvrm_alert_email_subject', $alert_subject_filter, 10 );
 
 // --- Upgrade.
 update_option( 'mdvrm_version', '0.2.0' );
@@ -187,5 +206,23 @@ $r = mdvrm_get( '/mudrava-rum/v1/stats' );
 mdvrm_assert( 'subscriber stats denied', in_array( $r['status'], array( 401, 403 ), true ) );
 $r = mdvrm_post( '/mudrava-rum/v1/send-report' );
 mdvrm_assert( 'subscriber send-report denied', in_array( $r['status'], array( 401, 403 ), true ) );
+
+// --- Report timestamp timezone.
+$tz_snapshot = array(
+	'timezone_string' => get_option( 'timezone_string' ),
+	'gmt_offset'      => get_option( 'gmt_offset' ),
+);
+update_option( 'timezone_string', 'Europe/Moscow' );
+update_option( 'gmt_offset', 3 );
+$format = new ReflectionMethod( MDVRM_Plugin::instance()->reports(), 'format_timestamp' );
+$format->setAccessible( true );
+$formatted = $format->invoke( MDVRM_Plugin::instance()->reports(), strtotime( '2026-01-15 23:30:00 UTC' ) );
+mdvrm_assert( 'report timestamps use site timezone', 0 === strpos( $formatted, '2026-01-16 02:30' ) );
+if ( false === $tz_snapshot['timezone_string'] || '' === $tz_snapshot['timezone_string'] ) {
+	update_option( 'timezone_string', '' );
+} else {
+	update_option( 'timezone_string', $tz_snapshot['timezone_string'] );
+}
+update_option( 'gmt_offset', false === $tz_snapshot['gmt_offset'] ? 0 : $tz_snapshot['gmt_offset'] );
 
 mdvrm_summary();

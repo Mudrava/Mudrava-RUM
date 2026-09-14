@@ -33,6 +33,7 @@ class MDVRM_Settings {
 		'excluded_roles'       => array( 'administrator', 'editor' ),
 		'blacklist'            => array(),
 		'trust_cf'             => 0,
+		'trust_proxies'        => array(),
 		'trust_auth_header'    => 0,
 		'report_schedule'      => 'daily',
 		'alert_ttfb_threshold' => 2.0,
@@ -73,6 +74,9 @@ class MDVRM_Settings {
 	public static function to_bool( $value, bool $fallback = false ): bool {
 		if ( is_bool( $value ) ) {
 			return $value;
+		}
+		if ( is_int( $value ) ) {
+			return 0 !== $value;
 		}
 		if ( is_string( $value ) ) {
 			$v = strtolower( trim( $value ) );
@@ -134,6 +138,18 @@ class MDVRM_Settings {
 			$settings['trust_auth_header'] = self::to_bool( $data['trust_auth_header'], false ) ? 1 : 0;
 		}
 
+		if ( isset( $data['trust_proxies'] ) ) {
+			$raw     = is_array( $data['trust_proxies'] ) ? $data['trust_proxies'] : preg_split( '/[\r\n,]+/', (string) $data['trust_proxies'] );
+			$proxies = array();
+			foreach ( $raw as $proxy ) {
+				$proxy = trim( sanitize_text_field( $proxy ) );
+				if ( '' !== $proxy && ( filter_var( $proxy, FILTER_VALIDATE_IP ) || self::valid_cidr( $proxy ) ) ) {
+					$proxies[] = $proxy;
+				}
+			}
+			$settings['trust_proxies'] = array_values( array_unique( $proxies ) );
+		}
+
 		if ( isset( $data['blacklist'] ) ) {
 			$blacklist             = is_array( $data['blacklist'] ) ? $data['blacklist'] : explode( "\n", str_replace( "\r", '', $data['blacklist'] ) );
 			$blacklist             = array_map( 'sanitize_text_field', array_map( 'trim', $blacklist ) );
@@ -166,5 +182,74 @@ class MDVRM_Settings {
 		update_option( self::OPTION_KEY, $settings );
 
 		return $settings;
+	}
+	/**
+	 * Validate an IPv4/IPv6 CIDR notation.
+	 *
+	 * @param string $cidr CIDR string.
+	 * @return bool
+	 */
+	public static function valid_cidr( string $cidr ): bool {
+		if ( ! preg_match( '#^([^/]+)/([0-9]{1,3})$#', $cidr, $match ) ) {
+			return false;
+		}
+		$network = filter_var( $match[1], FILTER_VALIDATE_IP );
+		$bits    = (int) $match[2];
+		$is_v6   = ( false !== strpos( $match[1], ':' ) );
+		$max     = $is_v6 ? 128 : 32;
+		return false !== $network && $bits >= 0 && $bits <= $max;
+	}
+
+	/**
+	 * Decide whether a connecting address is configured or local/private.
+	 *
+	 * @param string $ip Connecting IP address.
+	 * @return bool
+	 */
+	public function is_trusted_proxy( string $ip ): bool {
+		if ( '' === $ip || ! filter_var( $ip, FILTER_VALIDATE_IP ) ) {
+			return false;
+		}
+		if ( filter_var( $ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE ) ) {
+			$configured = $this->get( 'trust_proxies', array() );
+			foreach ( (array) $configured as $proxy ) {
+				if ( $ip === $proxy ) {
+					return true;
+				}
+				if ( $this->ip_in_cidr( $ip, (string) $proxy ) ) {
+					return true;
+				}
+			}
+			return false;
+		}
+		return true;
+	}
+
+	/**
+	 * Check whether an address belongs to a CIDR range.
+	 *
+	 * @param string $ip   IP address.
+	 * @param string $cidr CIDR range.
+	 * @return bool
+	 */
+	protected function ip_in_cidr( string $ip, string $cidr ): bool {
+		if ( ! preg_match( '#^([^/]+)/([0-9]{1,3})$#', $cidr, $match ) ) {
+			return false;
+		}
+		$network = inet_pton( $match[1] );
+		$client  = inet_pton( $ip );
+		if ( false === $network || false === $client || strlen( $network ) !== strlen( $client ) ) {
+			return false;
+		}
+		$bits      = (int) $match[2];
+		$bytes     = intdiv( $bits, 8 );
+		$remainder = $bits % 8;
+		if ( 0 !== $remainder ) {
+			$mask = ( 0xff << ( 8 - $remainder ) ) & 0xff;
+			if ( 0 !== ( ( ord( $client[ $bytes ] ) & $mask ) ^ ( ord( $network[ $bytes ] ) & $mask ) ) ) {
+				return false;
+			}
+		}
+		return substr( $client, 0, $bytes ) === substr( $network, 0, $bytes );
 	}
 }

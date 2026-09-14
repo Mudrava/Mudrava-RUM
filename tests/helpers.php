@@ -107,14 +107,19 @@ function mdvrm_block_http() {}
 function mdvrm_reset() {
 	global $wpdb;
 	$wpdb->query( 'TRUNCATE TABLE ' . MDVRM_TABLE ); // phpcs:ignore WordPress.DB
+	if ( class_exists( 'MDVRM_DB' ) ) {
+		MDVRM_DB::bump_stats_cache();
+	}
+	if ( class_exists( 'MDVRM_Plugin' ) ) {
+		MDVRM_Plugin::instance()->reset_request_state();
+	}
 	delete_option( 'mdvrm_settings' );
 	delete_option( 'mdvrm_ttfb_streak' );
 	delete_option( 'mdvrm_last_alert_ts' );
 	delete_option( 'mdvrm_last_report_ts' );
 	delete_option( 'mdvrm_version' );
-	delete_transient( 'mdvrm_rl_' . md5( '198.51.100.10:' . gmdate( 'YmdHi' ) ) );
-	delete_transient( 'mdvrm_rl_' . md5( '198.51.100.11:' . gmdate( 'YmdHi' ) ) );
-	delete_transient( 'mdvrm_rl_' . md5( '198.51.100.12:' . gmdate( 'YmdHi' ) ) );
+	$wpdb->query( "DELETE FROM {$wpdb->options} WHERE option_name LIKE '\\_transient\\_mdvrm\\_rl\\_%'" ); // phpcs:ignore WordPress.DB
+	$wpdb->query( "DELETE FROM {$wpdb->options} WHERE option_name LIKE '\\_transient\\_timeout\\_mdvrm\\_rl\\_%'" ); // phpcs:ignore WordPress.DB
 	$GLOBALS['mdvrm_mail'] = array();
 }
 
@@ -124,7 +129,9 @@ function mdvrm_reset() {
  * @param array $patch Patch.
  */
 function mdvrm_settings( array $patch ) {
-	update_option( 'mdvrm_settings', array_merge( get_option( 'mdvrm_settings', array() ), $patch ) );
+	$plugin = MDVRM_Plugin::instance();
+	$plugin->settings()->update( $patch );
+	$plugin->reset_request_state();
 }
 
 /**

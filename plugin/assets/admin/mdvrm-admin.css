@@ -333,6 +333,15 @@
 .mdvrm-val--avg { color: #996800; font-weight: 600; }
 .mdvrm-val--poor { color: var(--mdvrm-poor); font-weight: 600; }
 
+.mdvrm-status-cell {
+	font-weight: 400;
+	font-size: 0.82em;
+}
+.mdvrm-status-cell--good { color: #1a7f37; }
+.mdvrm-status-cell--avg { color: #9a6700; }
+.mdvrm-status-cell--poor { color: #cf222e; }
+.mdvrm-status-cell--na { color: #57606a; }
+
 .mdvrm-pill {
 	display: inline-block;
 	border-radius: 3px;
@@ -730,6 +739,10 @@
 	border-radius: 50%;
 	font-size: 9px;
 	line-height: 12px;
+}
+
+.mdvrm-dev--unknown:empty {
+	background: #eef0f3;
 }
 
 .mdvrm-td-session a {

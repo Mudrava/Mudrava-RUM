@@ -50,6 +50,13 @@ class MDVRM_Plugin {
 	protected $rest;
 
 	/**
+	 * Sampling decision for the current request.
+	 *
+	 * @var bool|null
+	 */
+	protected $track_decision = null;
+
+	/**
 	 * Admin UI handler.
 	 *
 	 * @var MDVRM_Admin
@@ -95,6 +102,8 @@ class MDVRM_Plugin {
 		$this->reports->hook();
 
 		add_action( 'admin_init', array( $this, 'maybe_upgrade' ) );
+		add_action( 'rest_api_init', array( $this, 'maybe_upgrade' ) );
+		add_action( 'init', array( $this, 'maybe_upgrade' ) );
 		add_action( 'admin_init', array( $this, 'register_privacy_content' ) );
 
 		/**
@@ -163,12 +172,19 @@ class MDVRM_Plugin {
 		$content = sprintf(
 			'<h2>%s</h2><p>%s</p><p>%s</p><p>%s</p>',
 			__( 'Mudrava RUM', 'mudrava-rum' ),
-			__( 'This plugin collects anonymized performance metrics (page load times, device type, network type, country derived from Cloudflare headers, and the visited page URL without query string) from site visitors. No personally identifiable information (PII) is collected or stored.', 'mudrava-rum' ),
-			__( 'Session IDs are randomly generated per browser tab using sessionStorage and are not linked to user accounts. No cookies are set. No data is sent to external services — all collected data is stored locally in your WordPress database.', 'mudrava-rum' ),
+			__( 'This plugin collects performance metrics (page load times, device type, network type, country derived from Cloudflare headers, and the visited page URL without query string) from site visitors. For logged-in visitors it may also store a non-unique role label for filtering. No email address, username, IP address, or other directly identifying profile data is stored.', 'mudrava-rum' ),
+			__( 'Session IDs are randomly generated per browser tab using sessionStorage and are not linked to user accounts. Role labels are stored independently of user IDs. No cookies are set by this plugin. No data is sent to external services; all collected data is stored locally in your WordPress database.', 'mudrava-rum' ),
 			__( 'Collected data is automatically purged based on configured retention settings.', 'mudrava-rum' )
 		);
 
 		wp_add_privacy_policy_content( 'Mudrava RUM', wp_kses_post( $content ) );
+	}
+
+	/**
+	 * Clear per-request cached decisions. Used by integration tests.
+	 */
+	public function reset_request_state(): void {
+		$this->track_decision = null;
 	}
 
 	/**
@@ -180,11 +196,16 @@ class MDVRM_Plugin {
 	 * @return bool
 	 */
 	public function should_track_request(): bool {
+		if ( null !== $this->track_decision ) {
+			return $this->track_decision;
+		}
+
 		$settings = $this->settings->all();
 
 		if ( is_user_logged_in() ) {
 			$user = wp_get_current_user();
 			if ( array_intersect( $settings['excluded_roles'], (array) $user->roles ) ) {
+				$this->track_decision = false;
 				return false;
 			}
 		}
@@ -198,12 +219,14 @@ class MDVRM_Plugin {
 				continue;
 			}
 			if ( $path === $prefix || 0 === strpos( $path, $prefix . '/' ) ) {
+				$this->track_decision = false;
 				return false;
 			}
 		}
 
 		$sample = $settings['sample_rate'];
-		if ( $sample < 1 && wp_rand( 0, 1000 ) / 1000 > $sample ) {
+		if ( $sample < 1 && wp_rand( 0, 1000 ) / 1000 >= $sample ) {
+			$this->track_decision = false;
 			return false;
 		}
 
@@ -213,7 +236,8 @@ class MDVRM_Plugin {
 		 * @param bool  $track    Whether to track the request.
 		 * @param array $settings Current plugin settings.
 		 */
-		return apply_filters( 'mdvrm_should_track_request', true, $settings );
+		$this->track_decision = (bool) apply_filters( 'mdvrm_should_track_request', true, $settings );
+		return $this->track_decision;
 	}
 
 	/**

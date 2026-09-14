@@ -1,6 +1,6 @@
 === Mudrava RUM ===
 Contributors: mudrava
-Tags: rum, performance, monitoring, web-vitals, lcp
+Tags: rum, performance, monitoring, lcp, ttfb
 Requires at least: 6.2
 Tested up to: 7.1
 Stable tag: 1.0.0
@@ -25,13 +25,13 @@ Mudrava RUM captures real user performance data from your WordPress site visitor
 * Configurable sampling rate and URL blacklist
 * Role-based exclusion (skip tracking for specific user roles)
 * Automatic data retention management (max records and days)
-* Color-coded performance indicators aligned with Web Vitals thresholds
+* Color-coded performance indicators aligned with recommended performance thresholds
 * Daily trend charts and CSV export
 * Responsive admin interface for mobile and desktop
 
 **How It Works:**
 
-A lightweight JavaScript collector runs on your site's frontend, gathering Core Web Vitals and performance metrics from each page view. Data is sent via the WordPress REST API and stored in a custom database table. The admin dashboard provides a Live Monitor view, filterable reports, and email summaries.
+A lightweight JavaScript collector runs on your site's frontend, gathering LCP and navigation timing metrics from each page view, while WordPress supplies server-side response and memory measurements. Data is sent via the WordPress REST API and stored in a custom database table. The admin dashboard provides a Live Monitor view, filterable reports, and email summaries.
 
 **Links:**
 
@@ -81,7 +81,7 @@ Go to Mudrava RUM > Live Monitor in your WordPress admin. Click "Generate Report
 
 **Data Collection:**
 
-This plugin collects anonymized performance metrics (TTFB, LCP, load times, device type, network type) from site visitors. No personally identifiable information (PII) is collected or stored. Session IDs are randomly generated and not linked to user accounts.
+This plugin collects performance metrics (TTFB, LCP, load times, device type, network type) from site visitors. For logged-in visitors whose role is not excluded, a non-unique role label is stored with the event. No email address, username, or other personally identifying account data is stored. Session IDs are randomly generated and are not linked to user accounts.
 
 **External Requests:**
 
@@ -98,14 +98,17 @@ Collected data is automatically purged based on your configured retention settin
 == Changelog ==
 
 = 1.0.0 =
-* Full admin UI redesign: responsive layout, Web Vitals color-coded KPI cards, SVG trend charts, CSV export, accessible controls
+* Full admin UI redesign: responsive layout, color-coded KPI cards, SVG trend charts, CSV export, accessible controls
 * Fixed WP-Cron scheduling so housekeeping, scheduled reports, and retention purge actually run (hourly housekeeping)
 * Fixed double sampling: the configured rate is now applied exactly once per pageview
 * TTFB alerts now evaluate in real time on each recorded pageview instead of waiting for cron
 * Scheduled email reports now cover the actual reporting period (last 24h / 7 days) instead of all retained data
 * Server-side ingestion timestamp; stricter validation and clamping for all incoming metrics
 * Rate limiting on the ingestion endpoint; URL/device/net/session/country whitelist validation before storage
-* Indexes for device and net filters; faster FIFO eviction with a single DELETE
+* Fixed URL port preservation, device/network normalization, metric caps, P75 LCP calculation, and trend averages
+* Added developer hooks for stored events and extensible email subjects, plus a Plugins-list settings shortcut
+* Added metric indexes, faster batched FIFO/retention cleanup, and reduced dashboard aggregate-cache churn
+* Fixed single-site uninstall to avoid multisite-only helpers and complete cleanup reliably
 * Automated test suite (integration + REST contract tests) and stricter i18n coverage
 
 = 0.2.0 =
@@ -123,7 +126,7 @@ Collected data is automatically purged based on your configured retention settin
 == Upgrade Notice ==
 
 = 1.0.0 =
-Complete admin redesign and reliability fixes (cron, sampling, alerts). Database schema gains two indexes; they are applied automatically on upgrade.
+Complete admin redesign and reliability fixes (cron, sampling, alerts, data quality). Database schema gains additional metric indexes; they are applied automatically on upgrade.
 
 = 0.2.0 =
 Renamed plugin. Updated slug, prefixes, and text domain.

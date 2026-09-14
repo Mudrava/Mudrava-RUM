@@ -4,11 +4,12 @@ set -u
 
 CONTAINER="${WP_CONTAINER:-mdvrm-stand-wp-1}"
 WP_PATH="${WP_PATH:-/var/www/html}"
-cd "$(dirname "$0")/.." || exit 1
+dir="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$dir" || exit 1
 
 # Ensure WP-CLI phar exists inside the container (writable layer is lost on recreate).
 if ! docker exec "$CONTAINER" test -x /usr/local/bin/wp 2>/dev/null; then
-	docker cp .tools/wp-cli.phar "$CONTAINER:/usr/local/bin/wp"
+	docker cp "$dir/.tools/wp-cli.phar" "$CONTAINER:/usr/local/bin/wp"
 	docker exec -u root "$CONTAINER" sh -c 'chmod +x /usr/local/bin/wp'
 fi
 

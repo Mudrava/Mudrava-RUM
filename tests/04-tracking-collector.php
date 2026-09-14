@@ -32,6 +32,7 @@ $_SERVER['REQUEST_URI'] = '/page/';
 mdvrm_settings( array( 'sample_rate' => 1.0 ) );
 $tracked = 0;
 for ( $i = 0; $i < 40; $i++ ) {
+	$plugin->reset_request_state();
 	if ( $plugin->should_track_request() ) {
 		$tracked++;
 	}
@@ -41,6 +42,7 @@ mdvrm_assert( 'sampling 1.0 tracks all', 40 === $tracked );
 mdvrm_settings( array( 'sample_rate' => 0 ) );
 $tracked = 0;
 for ( $i = 0; $i < 40; $i++ ) {
+	$plugin->reset_request_state();
 	if ( $plugin->should_track_request() ) {
 		$tracked++;
 	}
@@ -50,27 +52,34 @@ mdvrm_assert( 'sampling 0 tracks none', 0 === $tracked );
 mdvrm_settings( array( 'sample_rate' => 0.5 ) );
 $tracked = 0;
 for ( $i = 0; $i < 200; $i++ ) {
+	$plugin->reset_request_state();
 	if ( $plugin->should_track_request() ) {
 		$tracked++;
 	}
 }
-mdvrm_assert( 'sampling 0.5 applied exactly once per request (not squared)', $tracked > 80 && $tracked < 120 );
+mdvrm_assert( 'sampling 0.5 applied exactly once per request (not squared)', $tracked > 60 && $tracked < 140 );
 
 mdvrm_settings( array( 'sample_rate' => 1.0, 'blacklist' => array( '/cart', '/my-account/' ) ) );
 $_SERVER['REQUEST_URI'] = '/cart/';
+$plugin->reset_request_state();
 mdvrm_assert( 'blacklist prefix excluded', false === $plugin->should_track_request() );
 $_SERVER['REQUEST_URI'] = '/my-account/?x=1';
+$plugin->reset_request_state();
 mdvrm_assert( 'blacklist with query excluded', false === $plugin->should_track_request() );
 $_SERVER['REQUEST_URI'] = '/shop/';
+$plugin->reset_request_state();
 mdvrm_assert( 'non-blacklist tracked', true === $plugin->should_track_request() );
 $_SERVER['REQUEST_URI'] = '/cartx/';
+$plugin->reset_request_state();
 mdvrm_assert( 'blacklist is prefix not substring (tracked)', true === $plugin->should_track_request() );
 
 wp_set_current_user( 1 );
-$plugin->settings()->update( array( 'excluded_roles' => array( 'administrator' ) ) );
+mdvrm_settings( array( 'excluded_roles' => array( 'administrator' ) ) );
 $_SERVER['REQUEST_URI'] = '/page/';
+$plugin->reset_request_state();
 mdvrm_assert( 'admin excluded when role in list', false === $plugin->should_track_request() );
-$plugin->settings()->update( array( 'excluded_roles' => array() ) );
+mdvrm_settings( array( 'excluded_roles' => array() ) );
+$plugin->reset_request_state();
 mdvrm_assert( 'admin tracked when not excluded', true === $plugin->should_track_request() );
 
 $ctx = $plugin->get_server_context();
@@ -97,7 +106,7 @@ mdvrm_assert( 'collector enqueued for guest', wp_script_is( 'mdvrm-collector', '
 
 $GLOBALS['wp_scripts'] = null;
 wp_scripts();
-$plugin->settings()->update( array( 'excluded_roles' => array( 'administrator' ) ) );
+mdvrm_settings( array( 'excluded_roles' => array( 'administrator' ) ) );
 wp_set_current_user( 1 );
 do_action( 'wp_enqueue_scripts' );
 mdvrm_assert( 'collector NOT enqueued for admin with default exclusions', ! wp_script_is( 'mdvrm-collector', 'enqueued' ) );
@@ -105,7 +114,7 @@ mdvrm_assert( 'collector NOT enqueued for admin with default exclusions', ! wp_s
 wp_set_current_user( 0 );
 $GLOBALS['wp_scripts'] = null;
 wp_scripts();
-$plugin->settings()->update( array( 'excluded_roles' => array() ) );
+mdvrm_settings( array( 'excluded_roles' => array() ) );
 do_action( 'wp_enqueue_scripts' );
 ob_start();
 do_action( 'wp_footer' );

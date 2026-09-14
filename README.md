@@ -36,14 +36,14 @@ Synthetic tools like Lighthouse and PageSpeed Insights test from a single locati
 
 ## Features
 
-- **Core Web Vitals** — TTFB, LCP, server generation time, total page load
+- **Real-user metrics** — TTFB, LCP, server generation time, total page load
 - **Zero-config collector** — lightweight async JS, no impact on page speed
 - **Live Monitor dashboard** — real-time log with sortable columns and filters
 - **Performance reports** — on-demand modal with averages, P75 LCP, slowest pages
 - **Email summaries** — scheduled daily/weekly via WP-Cron
 - **Critical TTFB alerts** — configurable threshold, consecutive trigger, cooldown
 - **Smart sampling** — 100%, 50%, or 10% traffic sampling rate
-- **Privacy-first** — no PII, no cookies, no external services, all data stays in your DB
+- **Privacy-first** — no account identifiers, no cookies, no external services, all data stays in your DB
 - **Cache-aware** — detects and handles cached page artifacts automatically
 - **Extensible** — action/filter hooks for developers
 
@@ -60,7 +60,7 @@ Synthetic tools like Lighthouse and PageSpeed Insights test from a single locati
 ## Requirements
 
 - WordPress 6.2+
-- Tested up to WordPress 7.0
+- Tested up to WordPress 7.1
 - PHP 7.4+
 - WP REST API enabled
 - WP-Cron for scheduled emails (or external cron)
@@ -96,15 +96,28 @@ add_filter( 'mdvrm_before_insert', function ( $row ) {
     return $row;
 } );
 
+// React after an event has been stored
+add_action( 'mdvrm_log_inserted', function ( $insert_id, $row ) {
+    // ...
+}, 10, 2 );
+
 // Filter collector settings for frontend JS
 add_filter( 'mdvrm_collector_settings', function ( $localize ) {
     return $localize;
 } );
 
-// Customize email report content
+// Customize email report subject/content
+add_filter( 'mdvrm_report_email_subject', function ( $subject, $recipient, $site_name, $stats ) {
+    return $subject;
+}, 10, 4 );
+
 add_filter( 'mdvrm_report_email_body', function ( $body, $recipient, $avg ) {
     return $body;
 }, 10, 3 );
+
+add_filter( 'mdvrm_alert_email_subject', function ( $subject ) {
+    return $subject;
+} );
 
 // Action after plugin is fully loaded
 do_action( 'mdvrm_loaded', $plugin );
@@ -124,9 +137,10 @@ do_action( 'mdvrm_loaded', $plugin );
 | `device` | `mobile` / `tablet` / `desktop` |
 | `net` | `4g` / `3g` / `2g` / `slow-2g` |
 | `country` | ISO code via CF-IPCountry header |
+| `user_role` | Non-unique role label for tracked logged-in visitors |
 | `session_id` | Random ID (sessionStorage, not a cookie) |
 
-**No PII is collected.** No cookies are set. No data leaves your server.
+**No account identifiers are collected.** Emails, usernames, and identity profile data are not stored. No cookies are set. No data leaves your server.
 
 ## Development
 

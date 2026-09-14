@@ -106,6 +106,34 @@ class MDVRM_Reports {
 	}
 
 	/**
+	 * Format an optional metric value for the plain-text report.
+	 *
+	 * @param mixed $value Metric value or null.
+	 * @return string
+	 */
+	protected function format_metric( $value ): string {
+		if ( null === $value || '' === $value ) {
+			/* translators: placeholder for a missing performance metric. */
+			return __( '—', 'mudrava-rum' );
+		}
+
+		return sprintf( '%.3fs', (float) $value );
+	}
+
+	/**
+	 * Format a UTC Unix timestamp in the site timezone.
+	 *
+	 * @param int $timestamp UTC timestamp.
+	 * @return string
+	 */
+	protected function format_timestamp( int $timestamp ): string {
+		$date = wp_date( 'Y-m-d H:i', $timestamp );
+		$tz   = wp_timezone_string();
+
+		return $tz ? $date . ' ' . $tz : $date;
+	}
+
+	/**
 	 * Period length in seconds for the current report schedule.
 	 *
 	 * @return int
@@ -132,7 +160,7 @@ class MDVRM_Reports {
 		$period    = $this->report_period_seconds();
 		$days      = max( 1, (int) ceil( $period / DAY_IN_SECONDS ) );
 		$last_sent = get_option( 'mdvrm_last_report_ts' );
-		$last_sent = $last_sent ? gmdate( 'Y-m-d H:i', (int) $last_sent ) . ' UTC' : __( 'site start', 'mudrava-rum' );
+		$last_sent = $last_sent ? self::format_timestamp( (int) $last_sent ) : __( 'site start', 'mudrava-rum' );
 
 		$stats = MDVRM_DB::get_stats( array( 'days' => $days ) );
 
@@ -145,13 +173,14 @@ class MDVRM_Reports {
 		$body  = sprintf( __( "Mudrava RUM report — %1\$s (%2\$s)\n", 'mudrava-rum' ), $site_name, $period_label );
 		$body .= "--------------------------------------------------\n";
 		/* translators: 1: count, 2: LCP, 3: P75 LCP, 4: TTFB, 5: server, 6: load. */
-		$body .= sprintf( __( "Pageviews:    %1\$d\nAvg LCP:      %2\$ss\nP75 LCP:      %3\$ss\nAvg TTFB:     %4\$ss\nAvg server:   %5\$ss\nAvg load:     %6\$ss\n\n", 'mudrava-rum' ), $stats['count'], $stats['avg_lcp'], $stats['p75_lcp'], $stats['avg_ttfb'], $stats['avg_server'], $stats['avg_load'] );
+		$body .= sprintf( __( "Pageviews:    %1\$d\nAvg LCP:      %2\$s\nP75 LCP:      %3\$s\nAvg TTFB:     %4\$s\nAvg server:   %5\$s\nAvg load:     %6\$s\n\n", 'mudrava-rum' ), $stats['count'], $this->format_metric( $stats['avg_lcp'] ?? null ), $this->format_metric( $stats['p75_lcp'] ?? null ), $this->format_metric( $stats['avg_ttfb'] ?? null ), $this->format_metric( $stats['avg_server'] ?? null ), $this->format_metric( $stats['avg_load'] ?? null ) );
 
 		$body .= __( "Top slow pages by LCP (min 2 views):\n", 'mudrava-rum' );
 		$body .= "--------------------------------------------------\n";
 		if ( $stats['slowest_lcp'] ) {
 			foreach ( $stats['slowest_lcp'] as $row ) {
-				$body .= sprintf( '[LCP: %.3fs | TTFB: %.3fs] %s (%d hits)' . "\n", (float) $row['avg_lcp'], 0, $row['url'], (int) $row['count'] );
+				/* translators: 1: LCP or placeholder, 2: TTFB or placeholder, 3: URL, 4: hits. */
+				$body .= sprintf( '[LCP: %1$s | TTFB: %2$s] %3$s (%4$d hits)' . "\n", $this->format_metric( $row['avg_lcp'] ?? null ), $this->format_metric( $row['avg_ttfb'] ?? null ), $row['url'], (int) $row['count'] );
 			}
 		} else {
 			$body .= __( "Not enough data in this period.\n", 'mudrava-rum' );
@@ -174,12 +203,26 @@ class MDVRM_Reports {
 		 */
 		$body = apply_filters( 'mdvrm_report_email_body', $body, $recipient, $stats );
 
-		$sent = wp_mail(
+		/* translators: %s: site name. */
+		$default_subject = sprintf( __( 'Mudrava RUM report: %s', 'mudrava-rum' ), $site_name );
+
+		/**
+		 * Filter the scheduled/manual report email subject.
+		 *
+		 * @param string $subject   Email subject.
+		 * @param string $recipient Recipient email address.
+		 * @param string $site_name Site name.
+		 * @param array  $stats     Aggregated stats.
+		 */
+		$subject = apply_filters(
+			'mdvrm_report_email_subject',
+			$default_subject,
 			$recipient,
-			/* translators: %s: site name. */
-			sprintf( __( 'Mudrava RUM report: %s', 'mudrava-rum' ), $site_name ),
-			$body
+			$site_name,
+			$stats
 		);
+
+		$sent = wp_mail( $recipient, $subject, $body );
 
 		if ( $sent && ! $manual ) {
 			update_option( 'mdvrm_last_report_ts', time() );
@@ -222,10 +265,21 @@ class MDVRM_Reports {
 		update_option( 'mdvrm_last_alert_ts', time() );
 		update_option( 'mdvrm_ttfb_streak', 0 );
 
+		/* translators: 1: streak count, 2: threshold in seconds. */
+		$subject = sprintf( __( '[Mudrava RUM] TTFB alert: %1$d requests over %2$s', 'mudrava-rum' ), $streak, $threshold . 's' );
+
+		/**
+		 * Filter the TTFB alert email subject.
+		 *
+		 * @param string $subject   Email subject.
+		 * @param int    $streak    Consecutive slow-request count.
+		 * @param float  $threshold Alert threshold in seconds.
+		 */
+		$subject = apply_filters( 'mdvrm_alert_email_subject', $subject, $streak, $threshold );
+
 		wp_mail(
 			$recipient,
-			/* translators: 1: streak count, 2: threshold in seconds. */
-			sprintf( __( '[Mudrava RUM] TTFB alert: %1$d requests over %2$s', 'mudrava-rum' ), $streak, $threshold . 's' ),
+			$subject,
 			/* translators: 1: streak count, 2: threshold in seconds, 3: site name. */
 			sprintf( __( '%1$d consecutive pageviews exceeded %2$s of server response time on %3$s.', 'mudrava-rum' ), $streak, $threshold . 's', get_bloginfo( 'name' ) )
 		);

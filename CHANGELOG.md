@@ -15,18 +15,39 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Custom SVG plugin icon and wp.org marketing assets (banner 1544x500 / 772x250)
 - Automated test suites under `tests/` with standalone WP harness
 - CI: PHPCS matrix (PHP 7.4/8.0/8.2) and syntax-check workflow
+- Settings shortcut in the Plugins list
+- Developer hooks: `mdvrm_log_inserted`, `mdvrm_report_email_subject`, `mdvrm_alert_email_subject`
 
 ### Changed
 
 - Minified production assets (`mdvrm-admin.min.css/js`, `mdvrm-collector.min.js`) with filemtime cache busting
 - `Tested up to` bumped to WordPress 7.1
 - Regenerated `languages/mudrava-rum.pot` (GPLv2 header, slug-corrected bug reports URL)
+- Upgraded non-tracked storage from "no PII" to a precise disclosure that non-unique logged-in role labels may be stored
+- Reworded metric descriptions to say LCP/navigation metrics rather than implying CLS/INP coverage
+- Restricted proxy peer-address trust to configured trusted proxies and HMAC-hashed rate-limit keys
+- Ensured schema checks also run during REST and front-end initialization, not only admin requests
+- Dashboard/trend caches now use aggregate filter keys and versioned payloads, preventing sort-state cache fragmentation and orphaned transient churn
+- Cleanup now runs in 1000-row batches, and metric columns receive indexes in the release schema so fresh installs match upgraded installs
+- Local-day trend grouping uses cached timezone offsets instead of creating a `DateTimeImmutable` object for every event
 
 ### Fixed
 
 - Fatal error on the Settings page when rendering excluded roles (`translate_user_role()` given an array)
+- Fatal error when saving IPv6 trusted-proxy CIDR ranges
 - Session ID filter now matches by prefix (8-char IDs shown in the table) via `LIKE`
-- Admin bar/toolbar vertical rhythm and left-edge alignment on mobile viewports
+- URL sanitization preserves explicit ports and strips query/fragment values
+- Device and network values are normalized to allowed values, with unsupported values stored blank
+- Incoming metrics reject non-finite values and are capped by PHP/runtime limits before storage
+- Server generation time is recorded on ingestion instead of page render time
+- Trend averages use valid per-metric counts, and P75 LCP uses the filtered valid row count
+- Duplicate sort handlers no longer accumulate; auto-refresh uses applied filters rather than unsubmitted inputs
+- Recent days are retained by the trend fetch window
+- Request-state tracking and settings updates are reset between integration requests to prevent stale sampling decisions
+- Scheduled reports and local-day analytics use WordPress site timezone consistently
+- KPI notes and status labels are localized through the admin script payload
+- Missing performance metrics now display as `—` instead of `0.00s` in dashboard KPIs, trend points, report tables, and email reports
+- Single-site uninstall no longer calls multisite-only blog-switch helpers; all data is removed without a fatal error
 
 ## [0.2.0] — 2026-04-01
 

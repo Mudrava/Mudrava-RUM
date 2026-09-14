@@ -43,7 +43,18 @@
         if (window.crypto && window.crypto.randomUUID) {
             return window.crypto.randomUUID();
         }
-        return 'mdvrm-' + Math.random().toString(16).slice(2) + '-' + Date.now();
+        if (window.crypto && window.crypto.getRandomValues) {
+            const bytes = new Uint8Array(16);
+            window.crypto.getRandomValues(bytes);
+            bytes[6] = (bytes[6] & 0x0f) | 0x40;
+            bytes[8] = (bytes[8] & 0x3f) | 0x80;
+            const hex = Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
+            return 'mdvrm-' + hex + '-' + Date.now();
+        }
+        const a = Math.floor(Math.random() * 1e9).toString(36);
+        const b = Math.floor(Math.random() * 1e9).toString(36);
+        const c = Math.floor(Math.random() * 1e9).toString(36);
+        return 'mdvrm-' + a + b + c + '-' + Date.now();
     }
 
     function getNavigationTimings() {

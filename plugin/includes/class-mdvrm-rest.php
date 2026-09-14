@@ -22,7 +22,10 @@ class MDVRM_REST {
 	/**
 	 * Maximum ingest requests per minute per client.
 	 */
-	const RATE_LIMIT = 60;
+	const RATE_LIMIT         = 60;
+	const MAX_BODY_SIZE      = 65536;
+	const MAX_METRIC_SECONDS = 300.0;
+	const MAX_MEMORY_BYTES   = 2147483648;
 
 	/**
 	 * Plugin reference.
@@ -195,21 +198,33 @@ class MDVRM_REST {
 		}
 
 		if ( 0 === get_current_user_id() && isset( $_COOKIE[ LOGGED_IN_COOKIE ] ) ) {
-			// Restoring an expired cookie must not trip password-reset side effects.
-			$hooks = array();
-			foreach ( array( 'wp_login_failed', 'authenticate' ) as $hook ) {
-				$hooks[ $hook ] = isset( $GLOBALS['wp_filter'][ $hook ] ) ? $GLOBALS['wp_filter'][ $hook ] : null;
-				// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- Temporarily detach core hooks.
-				$GLOBALS['wp_filter'][ $hook ] = new WP_Hook();
-			}
-			$raw_cookie     = isset( $_COOKIE[ LOGGED_IN_COOKIE ] ) ? sanitize_text_field( wp_unslash( $_COOKIE[ LOGGED_IN_COOKIE ] ) ) : '';
-			$cookie_user_id = wp_validate_auth_cookie( $raw_cookie, 'logged_in' );
-			foreach ( $hooks as $hook => $original ) {
-				if ( null === $original ) {
-					unset( $GLOBALS['wp_filter'][ $hook ] );
+			// Restoring the logged-in user must not let an invalid cookie
+			// trigger core password-reset/logout side effects.
+			$failed_hook = isset( $GLOBALS['wp_filter']['wp_login_failed'] ) ? $GLOBALS['wp_filter']['wp_login_failed'] : null;
+			$auth_hook   = isset( $GLOBALS['wp_filter']['authenticate'] ) ? $GLOBALS['wp_filter']['authenticate'] : null;
+			// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- Temporarily detach core hooks.
+			$GLOBALS['wp_filter']['wp_login_failed'] = new WP_Hook();
+			// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- Temporarily detach core hooks.
+			$GLOBALS['wp_filter']['authenticate'] = new WP_Hook();
+
+			$cookie_user_id = false;
+			try {
+				$raw_cookie     = isset( $_COOKIE[ LOGGED_IN_COOKIE ] ) ? sanitize_text_field( wp_unslash( $_COOKIE[ LOGGED_IN_COOKIE ] ) ) : '';
+				$cookie_user_id = wp_validate_auth_cookie( $raw_cookie, 'logged_in' );
+			} finally {
+				if ( null === $failed_hook ) {
+					// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- Restore core hooks.
+					unset( $GLOBALS['wp_filter']['wp_login_failed'] );
 				} else {
 					// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- Restore core hooks.
-					$GLOBALS['wp_filter'][ $hook ] = $original;
+					$GLOBALS['wp_filter']['wp_login_failed'] = $failed_hook;
+				}
+				if ( null === $auth_hook ) {
+					// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- Restore core hooks.
+					unset( $GLOBALS['wp_filter']['authenticate'] );
+				} else {
+					// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- Restore core hooks.
+					$GLOBALS['wp_filter']['authenticate'] = $auth_hook;
 				}
 			}
 			if ( $cookie_user_id ) {
@@ -232,31 +247,49 @@ class MDVRM_REST {
 	 * @return bool True when the request is allowed.
 	 */
 	protected function rate_limited( string $scope = '' ): bool {
-		$remote = isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : '';
-		$remote = filter_var( $remote, FILTER_VALIDATE_IP ) ? $remote : '';
-		$ip     = '';
+		$remote      = isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : '';
+		$remote      = filter_var( $remote, FILTER_VALIDATE_IP ) ? $remote : '';
+		$ip          = '';
+		$header_seen = false;
 
-		if ( 1 === (int) $this->plugin->settings()->get( 'trust_cf' ) && isset( $_SERVER['HTTP_CF_CONNECTING_IP'] ) ) {
+		if (
+			1 === (int) $this->plugin->settings()->get( 'trust_cf' )
+			&& $this->plugin->settings()->is_trusted_proxy( $remote )
+			&& isset( $_SERVER['HTTP_CF_CONNECTING_IP'] )
+		) {
 			$cf = sanitize_text_field( wp_unslash( $_SERVER['HTTP_CF_CONNECTING_IP'] ) );
 			if ( filter_var( $cf, FILTER_VALIDATE_IP ) ) {
 				$ip = $cf;
+			} else {
+				$header_seen = true;
 			}
 		}
 
-		if ( empty( $ip ) && 1 === (int) $this->plugin->settings()->get( 'trust_auth_header' ) && isset( $_SERVER['HTTP_X_FORWARDED_FOR'] ) ) {
+		if (
+			empty( $ip )
+			&& 1 === (int) $this->plugin->settings()->get( 'trust_auth_header' )
+			&& $this->plugin->settings()->is_trusted_proxy( $remote )
+			&& isset( $_SERVER['HTTP_X_FORWARDED_FOR'] )
+		) {
 			$xff   = sanitize_text_field( wp_unslash( $_SERVER['HTTP_X_FORWARDED_FOR'] ) );
 			$first = trim( explode( ',', $xff )[0] );
 			if ( filter_var( $first, FILTER_VALIDATE_IP ) ) {
 				$ip = $first;
+			} else {
+				$header_seen = true;
 			}
 		}
 
-		if ( empty( $ip ) ) {
-			$ip = $remote;
+		if ( '' === $ip ) {
+			if ( $header_seen && '' !== $scope ) {
+				$ip = 'sess:' . $scope;
+			} else {
+				$ip = $remote;
+			}
 		}
 
 		$identity = $ip ? $ip : ( $scope ? 'sess:' . $scope : 'unknown' );
-		$key      = 'mdvrm_rl_' . hash_hmac( 'sha256', $identity . ':' . gmdate( 'YmdHi' ), wp_salt( 'auth' ) );
+		$key      = self::rate_limit_key( $identity );
 		$count    = (int) get_transient( $key );
 
 		if ( $count >= self::RATE_LIMIT ) {
@@ -279,7 +312,11 @@ class MDVRM_REST {
 			return new WP_Error( 'mdvrm_forbidden', __( 'Invalid security token', 'mudrava-rum' ), array( 'status' => 403 ) );
 		}
 
-		$body = $request->get_body();
+		$body = (string) $request->get_body();
+		if ( strlen( $body ) > self::MAX_BODY_SIZE ) {
+			return new WP_Error( 'mdvrm_too_large', __( 'Payload too large', 'mudrava-rum' ), array( 'status' => 413 ) );
+		}
+
 		if ( '' === $body ) {
 			return new WP_Error( 'mdvrm_empty', __( 'Empty payload', 'mudrava-rum' ), array( 'status' => 400 ) );
 		}
@@ -290,7 +327,7 @@ class MDVRM_REST {
 		}
 
 		$session_scope = isset( $payload['session_id'] ) && is_string( $payload['session_id'] )
-			? substr( preg_replace( '/[^a-zA-Z0-9\-]/', '', $payload['session_id'] ), 0, 64 )
+			? mb_substr( preg_replace( '/[^a-zA-Z0-9\-]/', '', $payload['session_id'] ), 0, 64 )
 			: '';
 
 		if ( $this->rate_limited( $session_scope ) ) {
@@ -315,9 +352,9 @@ class MDVRM_REST {
 			'ttfb'        => $metrics['ttfb'],
 			'lcp'         => $metrics['lcp'],
 			'total_load'  => $metrics['total_load'],
-			'memory_peak' => isset( $payload['memory_peak'] ) ? absint( $payload['memory_peak'] ) : 0,
-			'device'      => $this->read_string( $payload, 'device', 10 ),
-			'net'         => $this->read_string( $payload, 'net', 20 ),
+			'memory_peak' => min( self::MAX_MEMORY_BYTES, isset( $payload['memory_peak'] ) ? absint( $payload['memory_peak'] ) : 0 ),
+			'device'      => $this->read_device( $payload ),
+			'net'         => $this->read_network( $payload ),
 			'country'     => $this->read_country( $payload ),
 			'session_id'  => $this->read_string( $payload, 'session_id', 64 ),
 			'user_role'   => $this->get_user_role(),
@@ -348,7 +385,13 @@ class MDVRM_REST {
 		if ( ! isset( $payload[ $key ] ) || ! is_numeric( $payload[ $key ] ) ) {
 			return 0.0;
 		}
-		return floatval( $payload[ $key ] );
+
+		$value = floatval( $payload[ $key ] );
+		if ( ! is_finite( $value ) || $value <= 0 || $value > self::MAX_METRIC_SECONDS ) {
+			return 0.0;
+		}
+
+		return $value;
 	}
 
 	/**
@@ -363,7 +406,7 @@ class MDVRM_REST {
 		if ( ! isset( $payload[ $key ] ) || ! is_string( $payload[ $key ] ) ) {
 			return '';
 		}
-		return substr( sanitize_text_field( $payload[ $key ] ), 0, $max );
+		return mb_substr( sanitize_text_field( $payload[ $key ] ), 0, $max );
 	}
 
 	/**
@@ -378,6 +421,28 @@ class MDVRM_REST {
 		}
 		$country = strtoupper( sanitize_text_field( $payload['country'] ) );
 		return preg_match( '/^[A-Z]{2}$/', $country ) ? $country : '';
+	}
+
+	/**
+	 * Read an allowed device label, falling back to an unknown marker.
+	 *
+	 * @param array $payload Payload.
+	 * @return string
+	 */
+	protected function read_device( array $payload ): string {
+		$device = strtolower( $this->read_string( $payload, 'device', 10 ) );
+		return in_array( $device, MDVRM_DB::DEVICES, true ) ? $device : '';
+	}
+
+	/**
+	 * Read an allowed network label, falling back to an unknown marker.
+	 *
+	 * @param array $payload Payload.
+	 * @return string
+	 */
+	protected function read_network( array $payload ): string {
+		$network = strtolower( $this->read_string( $payload, 'net', 20 ) );
+		return in_array( $network, MDVRM_DB::NETWORKS, true ) ? $network : '';
 	}
 
 	/**
@@ -396,8 +461,13 @@ class MDVRM_REST {
 			return '';
 		}
 		$scheme = isset( $parts['scheme'] ) ? $parts['scheme'] : 'https';
-		$path   = isset( $parts['path'] ) ? $parts['path'] : '/';
-		return $scheme . '://' . $parts['host'] . $path;
+		$host   = $parts['host'];
+		if ( ! empty( $parts['port'] ) ) {
+			$host .= ':' . $parts['port'];
+		}
+		$path = isset( $parts['path'] ) ? $parts['path'] : '/';
+
+		return $scheme . '://' . $host . $path;
 	}
 
 	/**
@@ -448,10 +518,20 @@ class MDVRM_REST {
 	}
 
 	/**
-	 * Helper to extract filters.
+	 * Build a non-enumerable per-minute rate-limit bucket key.
 	 *
-	 * @param WP_REST_Request $request Request object.
-	 * @return array
+	 * @param string $identity Caller identity.
+	 * @return string
+	 */
+	public static function rate_limit_key( string $identity ): string {
+		return 'mdvrm_rl_' . hash_hmac( 'sha256', $identity . ':' . gmdate( 'YmdHi' ), wp_salt( 'auth' ) );
+	}
+
+	/**
+	 * JSON body (always array).
+	 *
+	 * @param WP_REST_Request $request Request.
+	 * @return array|null
 	 */
 	protected function get_filter_params( WP_REST_Request $request ): array {
 		$filter_params = array();

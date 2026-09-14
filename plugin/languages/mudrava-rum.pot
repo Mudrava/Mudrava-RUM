@@ -3,568 +3,602 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: Mudrava RUM 1.0.0\n"
-"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/plugin\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/mudrava-rum\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-09-02T01:12:01+00:00\n"
+"POT-Creation-Date: 2026-09-03T05:18:49+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"X-Generator: WP-CLI 2.12.0\n"
+"X-Generator: Mudrava RUM make-pot\n"
 "X-Domain: mudrava-rum\n"
 
-#. Plugin Name of the plugin
-#: mudrava-rum.php
-#: includes/class-mdvrm-admin.php:46
-#: includes/class-mdvrm-admin.php:47
-#: includes/class-mdvrm-plugin.php:165
-msgid "Mudrava RUM"
-msgstr ""
-
-#. Plugin URI of the plugin
-#: mudrava-rum.php
-msgid "https://wordpress.org/plugins/mudrava-rum/"
-msgstr ""
-
-#. Description of the plugin
-#: mudrava-rum.php
-msgid "Real User Monitoring (RUM) for WordPress websites to track performance metrics and user experience."
-msgstr ""
-
-#. Author of the plugin
-#: mudrava-rum.php
-msgid "MUDRAVA"
-msgstr ""
-
-#. Author URI of the plugin
-#: mudrava-rum.php
-msgid "https://mudrava.com/en/"
-msgstr ""
-
-#: includes/class-mdvrm-admin.php:57
-msgid "Mudrava RUM — Live Monitor"
-msgstr ""
-
-#: includes/class-mdvrm-admin.php:58
-#: includes/class-mdvrm-admin.php:297
-#: includes/class-mdvrm-admin.php:451
-msgid "Live Monitor"
-msgstr ""
-
-#: includes/class-mdvrm-admin.php:66
-msgid "Mudrava RUM — Settings"
-msgstr ""
-
-#: includes/class-mdvrm-admin.php:67
-#: includes/class-mdvrm-admin.php:303
-#: includes/class-mdvrm-admin.php:447
-msgid "Settings"
-msgstr ""
-
-#. translators: admin JS string.
-#: includes/class-mdvrm-admin.php:110
-msgid "Loading…"
-msgstr ""
-
-#. translators: admin JS string.
-#: includes/class-mdvrm-admin.php:112
-#: includes/class-mdvrm-admin.php:381
-msgid "No entries yet. Visit some front-end pages to collect data."
-msgstr ""
-
-#. translators: admin JS string.
-#: includes/class-mdvrm-admin.php:114
-msgid "events"
-msgstr ""
-
-#. translators: admin JS string.
-#: includes/class-mdvrm-admin.php:116
-#: includes/class-mdvrm-admin.php:257
-msgid "Events"
-msgstr ""
-
-#. translators: admin JS string.
-#: includes/class-mdvrm-admin.php:118
-msgid "Views"
-msgstr ""
-
-#. translators: admin JS string.
-#: includes/class-mdvrm-admin.php:120
-msgid "First page"
-msgstr ""
-
-#. translators: admin JS string.
-#: includes/class-mdvrm-admin.php:122
-msgid "Previous page"
-msgstr ""
-
-#. translators: admin JS string.
-#: includes/class-mdvrm-admin.php:124
-msgid "Next page"
-msgstr ""
-
-#. translators: admin JS string.
-#: includes/class-mdvrm-admin.php:126
-msgid "Last page"
-msgstr ""
-
-#. translators: admin JS string.
-#: includes/class-mdvrm-admin.php:128
-msgid "Updated"
-msgstr ""
-
-#. translators: admin JS string.
-#: includes/class-mdvrm-admin.php:130
-msgid "Failed to load data."
-msgstr ""
-
-#. translators: admin JS string.
-#: includes/class-mdvrm-admin.php:132
-msgid "Invalid URL"
-msgstr ""
-
-#. translators: admin JS string.
-#: includes/class-mdvrm-admin.php:134
-msgid "unknown"
-msgstr ""
-
-#. translators: admin JS string.
-#: includes/class-mdvrm-admin.php:136
-msgid "Email sent successfully."
-msgstr ""
-
-#. translators: admin JS string.
-#: includes/class-mdvrm-admin.php:138
-msgid "Could not send email. Check mail settings and recipient."
-msgstr ""
-
-#. translators: admin JS string.
-#: includes/class-mdvrm-admin.php:140
-msgid "Send the current report to the configured email now?"
-msgstr ""
-
-#. translators: admin JS string.
-#: includes/class-mdvrm-admin.php:142
-#: includes/class-mdvrm-admin.php:376
-msgid "Session"
-msgstr ""
-
-#. translators: admin JS string.
-#: includes/class-mdvrm-admin.php:144
-#: includes/class-mdvrm-admin.php:339
-msgid "All devices"
-msgstr ""
-
-#. translators: admin JS string.
-#: includes/class-mdvrm-admin.php:146
-#: includes/class-mdvrm-admin.php:345
-msgid "All networks"
-msgstr ""
-
-#. translators: admin JS string.
-#: includes/class-mdvrm-admin.php:148
-#: includes/class-mdvrm-admin.php:314
-msgid "All time"
-msgstr ""
-
-#: includes/class-mdvrm-admin.php:260
-msgid "pageviews · last 7 days"
-msgstr ""
-
-#: includes/class-mdvrm-admin.php:264
-msgid "Avg TTFB"
-msgstr ""
-
-#: includes/class-mdvrm-admin.php:267
-msgid "Good ≤ 0.8s · Poor > 1.8s"
-msgstr ""
-
-#: includes/class-mdvrm-admin.php:271
-msgid "P75 LCP"
-msgstr ""
-
-#: includes/class-mdvrm-admin.php:274
-msgid "Good ≤ 2.5s · Poor > 4s"
-msgstr ""
-
-#: includes/class-mdvrm-admin.php:278
-msgid "Avg Server"
-msgstr ""
-
-#: includes/class-mdvrm-admin.php:281
-msgid "PHP render · Good ≤ 0.5s"
-msgstr ""
-
-#: includes/class-mdvrm-admin.php:285
-msgid "Avg Total Load"
-msgstr ""
-
-#: includes/class-mdvrm-admin.php:288
-msgid "Full page · Good ≤ 3s"
-msgstr ""
-
-#: includes/class-mdvrm-admin.php:301
-msgid "Export CSV"
-msgstr ""
-
-#: includes/class-mdvrm-admin.php:302
-msgid "Generate Report"
-msgstr ""
-
-#: includes/class-mdvrm-admin.php:307
-msgid "Monitor controls"
-msgstr ""
-
-#: includes/class-mdvrm-admin.php:309
-msgid "Time period"
-msgstr ""
-
-#: includes/class-mdvrm-admin.php:311
-#: includes/class-mdvrm-reports.php:141
-msgid "Last 24 hours"
-msgstr ""
-
-#: includes/class-mdvrm-admin.php:312
-#: includes/class-mdvrm-reports.php:140
-msgid "Last 7 days"
-msgstr ""
-
-#: includes/class-mdvrm-admin.php:313
-msgid "Last 30 days"
-msgstr ""
-
-#: includes/class-mdvrm-admin.php:320
-msgid "Auto-refresh"
-msgstr ""
-
-#: includes/class-mdvrm-admin.php:336
-msgid "Session ID…"
-msgstr ""
-
-#: includes/class-mdvrm-admin.php:336
-msgid "Filter by session ID"
-msgstr ""
-
-#: includes/class-mdvrm-admin.php:337
-msgid "URL contains…"
-msgstr ""
-
-#: includes/class-mdvrm-admin.php:337
-msgid "Filter by URL"
-msgstr ""
-
-#: includes/class-mdvrm-admin.php:338
-#: includes/class-mdvrm-admin.php:373
-msgid "Device"
-msgstr ""
-
-#: includes/class-mdvrm-admin.php:340
-msgid "Mobile"
-msgstr ""
-
-#: includes/class-mdvrm-admin.php:341
-msgid "Tablet"
-msgstr ""
-
-#: includes/class-mdvrm-admin.php:342
-msgid "Desktop"
-msgstr ""
-
-#: includes/class-mdvrm-admin.php:344
-msgid "Network"
-msgstr ""
-
-#: includes/class-mdvrm-admin.php:351
-msgid "Filter"
-msgstr ""
-
-#: includes/class-mdvrm-admin.php:352
-msgid "Clear"
-msgstr ""
-
-#: includes/class-mdvrm-admin.php:354
-msgid "Rows per page"
-msgstr ""
-
-#: includes/class-mdvrm-admin.php:367
-msgid "Time"
-msgstr ""
-
-#: includes/class-mdvrm-admin.php:368
-msgid "URL"
-msgstr ""
-
-#: includes/class-mdvrm-admin.php:369
-msgid "TTFB"
-msgstr ""
-
-#: includes/class-mdvrm-admin.php:370
-msgid "LCP"
-msgstr ""
-
-#: includes/class-mdvrm-admin.php:371
-msgid "Load"
-msgstr ""
-
-#: includes/class-mdvrm-admin.php:372
-msgid "Server"
-msgstr ""
-
-#: includes/class-mdvrm-admin.php:374
-msgid "Net"
-msgstr ""
-
-#: includes/class-mdvrm-admin.php:375
-msgid "Country"
-msgstr ""
-
-#: includes/class-mdvrm-admin.php:434
-msgid "Settings saved."
-msgstr ""
-
-#: includes/class-mdvrm-admin.php:436
-msgid "Session expired. Please try again."
-msgstr ""
-
-#: includes/class-mdvrm-admin.php:466
-msgid "Retention"
-msgstr ""
-
-#: includes/class-mdvrm-admin.php:468
-msgid "Max records"
-msgstr ""
-
-#: includes/class-mdvrm-admin.php:470
-msgid "Oldest records are removed when this limit is reached."
-msgstr ""
-
-#: includes/class-mdvrm-admin.php:473
-msgid "Retention (days)"
-msgstr ""
-
-#: includes/class-mdvrm-admin.php:475
-msgid "Logs older than this are purged automatically."
-msgstr ""
-
-#: includes/class-mdvrm-admin.php:480
-msgid "Tracking"
-msgstr ""
-
-#: includes/class-mdvrm-admin.php:482
-msgid "Sampling rate"
-msgstr ""
-
-#: includes/class-mdvrm-admin.php:484
-msgid "100% — all traffic"
-msgstr ""
-
-#: includes/class-mdvrm-admin.php:485
-msgid "50%"
-msgstr ""
-
-#: includes/class-mdvrm-admin.php:486
-msgid "10%"
-msgstr ""
-
-#: includes/class-mdvrm-admin.php:488
-msgid "Applied once per page render."
-msgstr ""
-
-#: includes/class-mdvrm-admin.php:492
-msgid "Site runs behind Cloudflare: use CF-Connecting-IP for ingest rate limiting."
-msgstr ""
-
-#: includes/class-mdvrm-admin.php:496
-msgid "Site runs behind a trusted proxy: use the first address from X-Forwarded-For for ingest rate limiting."
-msgstr ""
-
-#: includes/class-mdvrm-admin.php:499
-msgid "Excluded roles"
-msgstr ""
-
-#: includes/class-mdvrm-admin.php:508
-msgid "Logged-in users with these roles are never tracked."
-msgstr ""
-
-#: includes/class-mdvrm-admin.php:511
-msgid "Blacklisted paths"
-msgstr ""
-
-#: includes/class-mdvrm-admin.php:513
-msgid "URL path prefixes to ignore, one per line."
-msgstr ""
-
-#: includes/class-mdvrm-admin.php:518
-msgid "Email reports"
-msgstr ""
-
-#: includes/class-mdvrm-admin.php:520
-msgid "Schedule"
-msgstr ""
-
-#: includes/class-mdvrm-admin.php:522
-msgid "Daily"
-msgstr ""
-
-#: includes/class-mdvrm-admin.php:523
-msgid "Weekly"
-msgstr ""
-
-#: includes/class-mdvrm-admin.php:527
-msgid "Recipient"
-msgstr ""
-
-#: includes/class-mdvrm-admin.php:530
-msgid "Send test now"
-msgstr ""
-
-#: includes/class-mdvrm-admin.php:532
-msgid "Where summaries and alerts are sent."
-msgstr ""
-
-#: includes/class-mdvrm-admin.php:537
-msgid "Critical alerts"
-msgstr ""
-
-#: includes/class-mdvrm-admin.php:539
-msgid "TTFB threshold (seconds)"
-msgstr ""
-
-#: includes/class-mdvrm-admin.php:541
-msgid "Alert when server response exceeds this value."
-msgstr ""
-
-#: includes/class-mdvrm-admin.php:544
-msgid "Consecutive slow requests"
-msgstr ""
-
-#: includes/class-mdvrm-admin.php:546
-msgid "How many slow pageviews in a row trigger the alert."
-msgstr ""
-
-#: includes/class-mdvrm-admin.php:549
-msgid "Cooldown (seconds)"
-msgstr ""
-
-#: includes/class-mdvrm-admin.php:551
-msgid "Minimum gap between alert emails."
-msgstr ""
-
-#: includes/class-mdvrm-admin.php:556
-msgid "Save Settings"
-msgstr ""
-
-#: includes/class-mdvrm-plugin.php:166
-msgid "This plugin collects anonymized performance metrics (page load times, device type, network type, country derived from Cloudflare headers, and the visited page URL without query string) from site visitors. No personally identifiable information (PII) is collected or stored."
-msgstr ""
-
-#: includes/class-mdvrm-plugin.php:167
-msgid "Session IDs are randomly generated per browser tab using sessionStorage and are not linked to user accounts. No cookies are set. No data is sent to external services — all collected data is stored locally in your WordPress database."
-msgstr ""
-
-#: includes/class-mdvrm-plugin.php:168
-msgid "Collected data is automatically purged based on configured retention settings."
-msgstr ""
-
-#. translators: %s: report schedule.
-#: includes/class-mdvrm-reports.php:67
-#, php-format
-msgid "Mudrava RUM housekeeping (reports: %s)"
-msgstr ""
-
-#: includes/class-mdvrm-reports.php:135
-msgid "site start"
-msgstr ""
-
-#. translators: 1: site name, 2: period label.
-#: includes/class-mdvrm-reports.php:145
-#, php-format
-msgid ""
-"Mudrava RUM report — %1$s (%2$s)\n"
-""
-msgstr ""
-
-#. translators: 1: count, 2: LCP, 3: P75 LCP, 4: TTFB, 5: server, 6: load.
-#: includes/class-mdvrm-reports.php:148
-#, php-format
-msgid ""
-"Pageviews:    %1$d\n"
-"Avg LCP:      %2$ss\n"
-"P75 LCP:      %3$ss\n"
-"Avg TTFB:     %4$ss\n"
-"Avg server:   %5$ss\n"
-"Avg load:     %6$ss\n"
-"\n"
-""
-msgstr ""
-
-#: includes/class-mdvrm-reports.php:150
-msgid ""
-"Top slow pages by LCP (min 2 views):\n"
-""
-msgstr ""
-
-#: includes/class-mdvrm-reports.php:157
-msgid ""
-"Not enough data in this period.\n"
-""
-msgstr ""
-
-#: includes/class-mdvrm-reports.php:160
-msgid ""
-"Devices:\n"
-""
-msgstr ""
-
-#. translators: %s: timestamp of last report.
-#: includes/class-mdvrm-reports.php:166
-#, php-format
-msgid "Period: since %s"
-msgstr ""
-
-#. translators: %s: site name.
-#: includes/class-mdvrm-reports.php:180
-#, php-format
-msgid "Mudrava RUM report: %s"
-msgstr ""
-
-#. translators: 1: streak count, 2: threshold in seconds.
-#: includes/class-mdvrm-reports.php:228
-#, php-format
-msgid "[Mudrava RUM] TTFB alert: %1$d requests over %2$s"
-msgstr ""
-
-#. translators: 1: streak count, 2: threshold in seconds, 3: site name.
-#: includes/class-mdvrm-reports.php:230
-#, php-format
+#: includes/class-mdvrm-reports.php:284
 msgid "%1$d consecutive pageviews exceeded %2$s of server response time on %3$s."
 msgstr ""
 
-#: includes/class-mdvrm-rest.php:274
-msgid "Invalid security token"
+#: includes/class-mdvrm-admin.php:587
+msgid "10%"
 msgstr ""
 
-#: includes/class-mdvrm-rest.php:279
+#: includes/class-mdvrm-admin.php:585
+msgid "100% — all traffic"
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:586
+msgid "50%"
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:647
+msgid "Alert when server response exceeds this value."
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:165
+msgid "All devices"
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:167
+msgid "All networks"
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:169
+msgid "All time"
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:589
+msgid "Applied once per page render."
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:421
+msgid "Auto-refresh"
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:211
+msgid "Average"
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:203
+msgid "Avg LCP"
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:185
+msgid "Avg Server"
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:177
+msgid "Avg TTFB"
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:189
+msgid "Avg Total Load"
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:207
+msgid "Avg server"
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:139
+msgid "Based on"
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:617
+msgid "Blacklisted paths"
+msgstr ""
+
+#: includes/class-mdvrm-rest.php:514
+msgid "Check mail settings or recipient"
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:453
+msgid "Clear"
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:175
+msgid "Close"
+msgstr ""
+
+#: includes/class-mdvrm-plugin.php:177
+msgid "Collected data is automatically purged based on configured retention settings."
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:650
+msgid "Consecutive slow requests"
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:655
+msgid "Cooldown (seconds)"
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:159
+msgid "Could not send email. Check mail settings and recipient."
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:476
+msgid "Country"
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:643
+msgid "Critical alerts"
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:628
+msgid "Daily"
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:443
+msgid "Desktop"
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:221
+msgid "Device"
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:209
+msgid "Devices"
+msgstr ""
+
+#: includes/class-mdvrm-reports.php:189
+msgid "Devices:\n"
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:624
+msgid "Email reports"
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:157
+msgid "Email sent successfully."
+msgstr ""
+
+#: includes/class-mdvrm-rest.php:321
 msgid "Empty payload"
 msgstr ""
 
-#: includes/class-mdvrm-rest.php:284
+#: includes/class-mdvrm-admin.php:135
+msgid "Events"
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:605
+msgid "Excluded roles"
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:219
+msgid "Export"
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:402
+msgid "Export CSV"
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:151
+msgid "Failed to load data."
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:452
+msgid "Filter"
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:438
+msgid "Filter by URL"
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:437
+msgid "Filter by session ID"
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:141
+msgid "First page"
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:389
+msgid "Full page · Good ≤ 3s"
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:403
+msgid "Generate Report"
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:231
+msgid "Good"
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:368
+msgid "Good ≤ 0.8s · Poor > 1.8s"
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:375
+msgid "Good ≤ 2.5s · Poor > 4s"
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:205
+msgid "Heaviest by server time"
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:652
+msgid "How many slow pageviews in a row trigger the alert."
+msgstr ""
+
+#: includes/class-mdvrm-rest.php:326
 msgid "Invalid JSON"
 msgstr ""
 
-#: includes/class-mdvrm-rest.php:292
-msgid "Too many requests"
+#: includes/class-mdvrm-admin.php:153
+msgid "Invalid URL"
 msgstr ""
 
-#: includes/class-mdvrm-rest.php:303
+#: includes/class-mdvrm-rest.php:312
+msgid "Invalid security token"
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:471
+msgid "LCP"
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:199
+msgid "LCP trend · daily average"
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:412
+#: includes/class-mdvrm-reports.php:169
+msgid "Last 24 hours"
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:217
+msgid "Last 30 days"
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:215
+#: includes/class-mdvrm-reports.php:168
+msgid "Last 7 days"
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:147
+msgid "Last page"
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:76
+msgid "Live Monitor"
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:472
+msgid "Load"
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:129
+msgid "Loading…"
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:614
+msgid "Logged-in users with these roles are never tracked."
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:576
+msgid "Logs older than this are purged automatically."
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:569
+msgid "Max records"
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:657
+msgid "Minimum gap between alert emails."
+msgstr ""
+
+#: includes/class-mdvrm-rest.php:345
 msgid "Missing page load metric"
 msgstr ""
 
-#: includes/class-mdvrm-rest.php:325
+#: includes/class-mdvrm-admin.php:441
+msgid "Mobile"
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:408
+msgid "Monitor controls"
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:64
+#: includes/class-mdvrm-plugin.php:174
+msgid "Mudrava RUM"
+msgstr ""
+
+#: includes/class-mdvrm-reports.php:67
+msgid "Mudrava RUM housekeeping (reports: %s)"
+msgstr ""
+
+#: includes/class-mdvrm-reports.php:173
+msgid "Mudrava RUM report — %1$s (%2$s)\n"
+msgstr ""
+
+#: includes/class-mdvrm-reports.php:207
+msgid "Mudrava RUM report: %s"
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:75
+msgid "Mudrava RUM — Live Monitor"
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:84
+msgid "Mudrava RUM — Settings"
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:237
+msgid "N/A"
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:475
+msgid "Net"
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:223
+msgid "Network"
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:145
+msgid "Next page"
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:131
+msgid "No entries yet. Visit some front-end pages to collect data."
+msgstr ""
+
+#: includes/class-mdvrm-reports.php:186
+msgid "Not enough data in this period.\n"
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:233
+msgid "OK"
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:571
+msgid "Oldest records are removed when this limit is reached."
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:602
+msgid "One IP or CIDR per line. Peer-address headers are used only when the peer matches this list."
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:181
+msgid "P75 LCP"
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:382
+msgid "PHP render · Good ≤ 0.5s"
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:187
+msgid "PHP render · good ≤ 0.5s"
+msgstr ""
+
+#: includes/class-mdvrm-reports.php:176
+msgid "Pageviews:    %1$d\nAvg LCP:      %2$s\nP75 LCP:      %3$s\nAvg TTFB:     %4$s\nAvg server:   %5$s\nAvg load:     %6$s\n\n"
+msgstr ""
+
+#: includes/class-mdvrm-rest.php:317
+msgid "Payload too large"
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:195
+msgid "Performance Report"
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:193
+msgid "Performance report"
+msgstr ""
+
+#: includes/class-mdvrm-reports.php:195
+msgid "Period: since %s"
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:235
+msgid "Poor"
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:143
+msgid "Previous page"
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:633
+msgid "Recipient"
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:171
+msgid "Refresh"
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:567
+msgid "Retention"
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:574
+msgid "Retention (days)"
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:455
+msgid "Rows per page"
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:583
+msgid "Sampling rate"
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:662
+msgid "Save Settings"
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:626
+msgid "Schedule"
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:249
+msgid "Send Report to Email"
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:636
+msgid "Send test now"
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:161
+msgid "Send the current report to the configured email now?"
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:473
+msgid "Server"
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:163
+msgid "Session"
+msgstr ""
+
+#: includes/class-mdvrm-plugin.php:176
+msgid "Session IDs are randomly generated per browser tab using sessionStorage and are not linked to user accounts. Role labels are stored independently of user IDs. No cookies are set by this plugin. No data is sent to external services; all collected data is stored locally in your WordPress database."
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:437
+msgid "Session ID…"
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:537
+msgid "Session expired. Please try again."
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:52
+msgid "Settings"
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:535
+msgid "Settings saved."
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:593
+msgid "Site runs behind Cloudflare: use CF-Connecting-IP for ingest rate limiting."
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:597
+msgid "Site runs behind a trusted proxy: use the first address from X-Forwarded-For for ingest rate limiting."
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:201
+msgid "Slowest pages by LCP"
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:229
+msgid "Status"
+msgstr ""
+
+#: includes/class-mdvrm-rest.php:367
 msgid "Storage error"
 msgstr ""
 
-#: includes/class-mdvrm-rest.php:439
-msgid "Check mail settings or recipient"
+#: includes/class-mdvrm-admin.php:470
+msgid "TTFB"
 msgstr ""
+
+#: includes/class-mdvrm-admin.php:645
+msgid "TTFB threshold (seconds)"
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:197
+msgid "TTFB trend · daily average"
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:442
+msgid "Tablet"
+msgstr ""
+
+#: includes/class-mdvrm-plugin.php:175
+msgid "This plugin collects performance metrics (page load times, device type, network type, country derived from Cloudflare headers, and the visited page URL without query string) from site visitors. For logged-in visitors it may also store a non-unique role label for filtering. No email address, username, IP address, or other directly identifying profile data is stored."
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:225
+msgid "Time"
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:410
+msgid "Time period"
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:213
+msgid "Today"
+msgstr ""
+
+#: includes/class-mdvrm-rest.php:334
+msgid "Too many requests"
+msgstr ""
+
+#: includes/class-mdvrm-reports.php:178
+msgid "Top slow pages by LCP (min 2 views):\n"
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:581
+msgid "Tracking"
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:600
+msgid "Trusted proxy addresses"
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:173
+msgid "URL"
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:438
+msgid "URL contains…"
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:619
+msgid "URL path prefixes to ignore, one per line."
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:149
+msgid "Updated"
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:137
+msgid "Views"
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:629
+msgid "Weekly"
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:638
+msgid "Where summaries and alerts are sent."
+msgstr ""
+
+#: includes/class-mdvrm-reports.php:269
+msgid "[Mudrava RUM] TTFB alert: %1$d requests over %2$s"
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:133
+msgid "events"
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:191
+msgid "full page · good ≤ 3s"
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:179
+msgid "good ≤ 0.8s · poor > 1.8s"
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:183
+msgid "good ≤ 2.5s · poor > 4s"
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:361
+msgid "pageviews · last 7 days"
+msgstr ""
+
+#: includes/class-mdvrm-reports.php:163
+msgid "site start"
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:155
+msgid "unknown"
+msgstr ""
+
+#: includes/class-mdvrm-admin.php:247
+#: includes/class-mdvrm-reports.php:117
+msgid "—"
+msgstr ""
+

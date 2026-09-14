@@ -36,6 +36,24 @@ class MDVRM_Admin {
 	public function hook(): void {
 		add_action( 'admin_menu', array( $this, 'add_menu' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_assets' ) );
+		add_filter( 'plugin_action_links_' . plugin_basename( MDVRM_PLUGIN_FILE ), array( $this, 'add_settings_link' ) );
+	}
+
+	/**
+	 * Add a Settings shortcut to the Plugins list.
+	 *
+	 * @param array $links Existing action links.
+	 * @return array
+	 */
+	public function add_settings_link( array $links ): array {
+		$settings_link = sprintf(
+			'<a href="%s">%s</a>',
+			esc_url( admin_url( 'admin.php?page=mudrava-rum-settings' ) ),
+			esc_html__( 'Settings', 'mudrava-rum' )
+		);
+		array_unshift( $links, $settings_link );
+
+		return $links;
 	}
 
 	/**
@@ -99,13 +117,14 @@ class MDVRM_Admin {
 			'mdvrm-admin-js',
 			'MDVRMAdminSettings',
 			array(
-				'live'          => $is_live ? 1 : 0,
-				'restUrl'       => get_rest_url( null, 'mudrava-rum/v1/logs' ),
-				'statsUrl'      => get_rest_url( null, 'mudrava-rum/v1/stats' ),
-				'sendReportUrl' => get_rest_url( null, 'mudrava-rum/v1/send-report' ),
-				'nonce'         => wp_create_nonce( 'wp_rest' ),
-				'version'       => MDVRM_VERSION,
-				'i18n'          => array(
+				'live'           => $is_live ? 1 : 0,
+				'restUrl'        => get_rest_url( null, 'mudrava-rum/v1/logs' ),
+				'statsUrl'       => get_rest_url( null, 'mudrava-rum/v1/stats' ),
+				'sendReportUrl'  => get_rest_url( null, 'mudrava-rum/v1/send-report' ),
+				'nonce'          => wp_create_nonce( 'wp_rest' ),
+				'version'        => MDVRM_VERSION,
+				'reportSchedule' => $this->plugin->settings()->get( 'report_schedule' ),
+				'i18n'           => array(
 					/* translators: admin JS string. */
 					'loading'      => __( 'Loading…', 'mudrava-rum' ),
 					/* translators: admin JS string. */
@@ -116,6 +135,8 @@ class MDVRM_Admin {
 					'events'       => __( 'Events', 'mudrava-rum' ),
 					/* translators: admin JS string. */
 					'views'        => __( 'Views', 'mudrava-rum' ),
+					/* translators: admin JS report label. */
+					'basedOn'      => __( 'Based on', 'mudrava-rum' ),
 					/* translators: admin JS string. */
 					'firstPage'    => __( 'First page', 'mudrava-rum' ),
 					/* translators: admin JS string. */
@@ -146,6 +167,86 @@ class MDVRM_Admin {
 					'allNet'       => __( 'All networks', 'mudrava-rum' ),
 					/* translators: admin JS string. */
 					'allTime'      => __( 'All time', 'mudrava-rum' ),
+					/* translators: admin JS string. */
+					'refresh'      => __( 'Refresh', 'mudrava-rum' ),
+					/* translators: admin JS string. */
+					'url'          => __( 'URL', 'mudrava-rum' ),
+					/* translators: admin JS string. */
+					'close'        => __( 'Close', 'mudrava-rum' ),
+					/* translators: admin JS string. */
+					'avgTtfb'      => __( 'Avg TTFB', 'mudrava-rum' ),
+					/* translators: admin JS KPI note. */
+					'noteTtfb'     => __( 'good ≤ 0.8s · poor > 1.8s', 'mudrava-rum' ),
+					/* translators: admin JS string. */
+					'p75Lcp'       => __( 'P75 LCP', 'mudrava-rum' ),
+					/* translators: admin JS KPI note. */
+					'noteLcp'      => __( 'good ≤ 2.5s · poor > 4s', 'mudrava-rum' ),
+					/* translators: admin JS string. */
+					'avgServer'    => __( 'Avg Server', 'mudrava-rum' ),
+					/* translators: admin JS KPI note. */
+					'noteServer'   => __( 'PHP render · good ≤ 0.5s', 'mudrava-rum' ),
+					/* translators: admin JS string. */
+					'avgLoad'      => __( 'Avg Total Load', 'mudrava-rum' ),
+					/* translators: admin JS KPI note. */
+					'noteLoad'     => __( 'full page · good ≤ 3s', 'mudrava-rum' ),
+					/* translators: admin JS string. */
+					'reportAria'   => __( 'Performance report', 'mudrava-rum' ),
+					/* translators: admin JS string. */
+					'reportTitle'  => __( 'Performance Report', 'mudrava-rum' ),
+					/* translators: admin JS string. */
+					'ttfbTrend'    => __( 'TTFB trend · daily average', 'mudrava-rum' ),
+					/* translators: admin JS string. */
+					'lcpTrend'     => __( 'LCP trend · daily average', 'mudrava-rum' ),
+					/* translators: admin JS string. */
+					'slowestLcp'   => __( 'Slowest pages by LCP', 'mudrava-rum' ),
+					/* translators: admin JS string. */
+					'avgLcp'       => __( 'Avg LCP', 'mudrava-rum' ),
+					/* translators: admin JS string. */
+					'heaviestSrv'  => __( 'Heaviest by server time', 'mudrava-rum' ),
+					/* translators: admin JS string. */
+					'avgSrv'       => __( 'Avg server', 'mudrava-rum' ),
+					/* translators: admin JS string. */
+					'devices'      => __( 'Devices', 'mudrava-rum' ),
+					/* translators: admin JS string. */
+					'average'      => __( 'Average', 'mudrava-rum' ),
+					/* translators: admin JS string. */
+					'today'        => __( 'Today', 'mudrava-rum' ),
+					/* translators: admin JS period. */
+					'last7days'    => __( 'Last 7 days', 'mudrava-rum' ),
+					/* translators: admin JS period. */
+					'last30days'   => __( 'Last 30 days', 'mudrava-rum' ),
+					/* translators: admin JS string. */
+					'export'       => __( 'Export', 'mudrava-rum' ),
+					/* translators: admin JS string. */
+					'device'       => __( 'Device', 'mudrava-rum' ),
+					/* translators: admin JS string. */
+					'network'      => __( 'Network', 'mudrava-rum' ),
+					/* translators: admin JS string. */
+					'columnTime'   => __( 'Time', 'mudrava-rum' ),
+					/* translators: admin JS string. */
+					'columnUrl'    => __( 'URL', 'mudrava-rum' ),
+					/* translators: admin JS string. */
+					'status'       => __( 'Status', 'mudrava-rum' ),
+					/* translators: admin JS status. */
+					'statusGood'   => __( 'Good', 'mudrava-rum' ),
+					/* translators: admin JS status. */
+					'statusOk'     => __( 'OK', 'mudrava-rum' ),
+					/* translators: admin JS status. */
+					'statusPoor'   => __( 'Poor', 'mudrava-rum' ),
+					/* translators: admin JS status. */
+					'statusNa'     => __( 'N/A', 'mudrava-rum' ),
+					/* translators: admin JS status. */
+					'good'         => __( 'Good', 'mudrava-rum' ),
+					/* translators: admin JS status. */
+					'ok'           => __( 'OK', 'mudrava-rum' ),
+					/* translators: admin JS status. */
+					'poor'         => __( 'Poor', 'mudrava-rum' ),
+					/* translators: admin JS status. */
+					'na'           => __( 'N/A', 'mudrava-rum' ),
+					/* translators: admin JS metric placeholder. */
+					'noData'       => __( '—', 'mudrava-rum' ),
+					/* translators: admin JS string. */
+					'sendReport'   => __( 'Send Report to Email', 'mudrava-rum' ),
 				),
 			)
 		);
@@ -494,6 +595,11 @@ class MDVRM_Admin {
 					<label class="mdvrm-checkbox-item" for="mdvrm-trust-auth">
 						<input type="checkbox" id="mdvrm-trust-auth" name="trust_auth_header" value="1" <?php checked( 1, (int) $settings['trust_auth_header'] ); ?> />
 						<?php esc_html_e( 'Site runs behind a trusted proxy: use the first address from X-Forwarded-For for ingest rate limiting.', 'mudrava-rum' ); ?>
+					</label>
+					<label class="mdvrm-field" for="mdvrm-trust-proxies">
+						<span class="mdvrm-field__label"><?php esc_html_e( 'Trusted proxy addresses', 'mudrava-rum' ); ?></span>
+						<textarea id="mdvrm-trust-proxies" name="trust_proxies" rows="3" class="large-text code" placeholder="10.0.0.1&#10;203.0.113.5"><?php echo esc_textarea( implode( "\n", (array) $settings['trust_proxies'] ) ); ?></textarea>
+						<span class="mdvrm-field__desc"><?php esc_html_e( 'One IP or CIDR per line. Peer-address headers are used only when the peer matches this list.', 'mudrava-rum' ); ?></span>
 					</label>
 					<fieldset class="mdvrm-field">
 						<legend class="mdvrm-field__label"><?php esc_html_e( 'Excluded roles', 'mudrava-rum' ); ?></legend>

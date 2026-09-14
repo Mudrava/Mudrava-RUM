@@ -25,6 +25,13 @@
 		return isFinite(n) ? n.toFixed(2) : '—';
 	}
 
+	function fmtSeconds(v) {
+		if (null == v || '' === v) {
+			return t('noData', '—');
+		}
+		return fmt(v) + 's';
+	}
+
 	function fmtDateTime(s) {
 		var d = new Date(String(s).replace(' ', 'T') + 'Z');
 		if (isNaN(d.getTime())) {
@@ -60,6 +67,18 @@
 	};
 
 	var UNKNOWN = t('unknown', 'unknown');
+	var STATUS_LABELS = {
+		good: t('good', 'Good'),
+		avg: t('ok', 'OK'),
+		poor: t('poor', 'Poor'),
+		na: t('na', 'N/A')
+	};
+	var METRIC_LABELS = {
+		avg_ttfb: t('avgTtfb', 'Avg TTFB'),
+		p75_lcp: t('p75Lcp', 'P75 LCP'),
+		avg_server: t('avgServer', 'Avg Server'),
+		avg_load: t('avgLoad', 'Avg Total Load')
+	};
 
 	function isSafeHref(url) {
 		if (typeof url !== 'string' || !url) {
@@ -164,12 +183,17 @@
 			return;
 		}
 
+		function defaultDays() {
+			return cfg && 'daily' === cfg.reportSchedule ? '1' : '7';
+		}
+
 		function loadDaysPref() {
+			var fallback = defaultDays();
 			try {
 				var v = sessionStorage.getItem('mdvrm_days');
-				return v === '1' || v === '30' ? v : '7';
+				return v === '0' || v === '1' || v === '7' || v === '30' ? v : fallback;
 			} catch (e) {
-				return '7';
+				return fallback;
 			}
 		}
 
@@ -185,13 +209,20 @@
 			url: '',
 			total: 0
 		};
+		var seq = { logs: 0, stats: 0 };
 
 		periodSel.value = state.days;
+
+		if (periodSel.options.length) {
+			periodSel.options[0].textContent = t('today', 'Today');
+			periodSel.options[1].textContent = t('last7days', 'Last 7 days');
+			periodSel.options[2].textContent = t('last30days', 'Last 30 days');
+		}
 
 		var auto = { on: false, timer: null };
 		var lastRows = [];
 
-		var refreshBtn = el('button', 'button button-small', 'Refresh');
+		var refreshBtn = el('button', 'button button-small', t('refresh', 'Refresh'));
 		refreshBtn.type = 'button';
 		if (toolbar) {
 			toolbar.insertBefore(refreshBtn, statusEl || null);
@@ -221,15 +252,20 @@
 			return p;
 		}
 
-		function readFilters() {
+		function applyFilters() {
 			state.session = sessionInp ? sessionInp.value.trim() : '';
 			state.url = urlInp ? urlInp.value.trim() : '';
 			state.device = deviceSel ? deviceSel.value : '';
 			state.net = netSel ? netSel.value : '';
 		}
 
-		function metricTd(value, key) {
-			return el('td', 'mdvrm-val--' + grade(value, GRADES[key][0], GRADES[key][1]), fmt(value) + 's');
+		function metricTd(value, key, showStatus) {
+			var g = grade(value, GRADES[key][0], GRADES[key][1]);
+			var td = el('td', 'mdvrm-val--' + g, fmtSeconds(value));
+			if (showStatus) {
+				td.appendChild(el('span', 'mdvrm-status-cell mdvrm-status-cell--' + g, ' · ' + STATUS_LABELS[g]));
+			}
+			return td;
 		}
 
 		function urlCell(url) {
@@ -286,14 +322,14 @@
 				var tr = document.createElement('tr');
 				tr.appendChild(el('td', 'mdvrm-td-time', fmtDateTime(row.event_time)));
 				tr.appendChild(urlCell(row.url));
-				tr.appendChild(metricTd(row.ttfb, 'ttfb'));
-				tr.appendChild(metricTd(row.lcp, 'lcp'));
-				tr.appendChild(metricTd(row.total_load, 'total_load'));
-				tr.appendChild(metricTd(row.server_time, 'server_time'));
+				tr.appendChild(metricTd(row.ttfb, 'ttfb', true));
+				tr.appendChild(metricTd(row.lcp, 'lcp', true));
+				tr.appendChild(metricTd(row.total_load, 'total_load', true));
+				tr.appendChild(metricTd(row.server_time, 'server_time', true));
 			var devTd = el('td');
 			devTd.appendChild(devicePill(row.device));
 			tr.appendChild(devTd);
-				tr.appendChild(el('td', null, row.net ? row.net : '—'));
+				tr.appendChild(el('td', null, row.net ? row.net : UNKNOWN));
 				tr.appendChild(el('td', null, row.country ? row.country : '—'));
 				var sessTd = el('td', 'mdvrm-td-session');
 				var sessSpan;
@@ -305,7 +341,7 @@
 						if (sessionInp) {
 							sessionInp.value = row.session_id;
 						}
-						readFilters();
+						state.session = row.session_id;
 						state.page = 1;
 						loadAll();
 					});
@@ -322,10 +358,10 @@
 			kpis.textContent = '';
 			[
 				{ label: t('events', 'Events'), value: String(stats.count), cls: 'neutral', note: periodLabel() },
-				{ label: 'Avg TTFB', value: fmt(stats.avg_ttfb) + 's', cls: grade(stats.avg_ttfb, GRADES.ttfb[0], GRADES.ttfb[1]), note: 'good ≤ 0.8s · poor > 1.8s' },
-				{ label: 'P75 LCP', value: fmt(stats.p75_lcp) + 's', cls: grade(stats.p75_lcp, GRADES.lcp[0], GRADES.lcp[1]), note: 'good ≤ 2.5s · poor > 4s' },
-				{ label: 'Avg Server', value: fmt(stats.avg_server) + 's', cls: grade(stats.avg_server, GRADES.server_time[0], GRADES.server_time[1]), note: 'PHP render · good ≤ 0.5s' },
-				{ label: 'Avg Total Load', value: fmt(stats.avg_load) + 's', cls: grade(stats.avg_load, GRADES.total_load[0], GRADES.total_load[1]), note: 'full page · good ≤ 3s' }
+				{ label: t('avgTtfb', 'Avg TTFB'), value: fmtSeconds(stats.avg_ttfb), cls: grade(stats.avg_ttfb, GRADES.ttfb[0], GRADES.ttfb[1]), note: t('noteTtfb', 'good ≤ 0.8s · poor > 1.8s') },
+				{ label: t('p75Lcp', 'P75 LCP'), value: fmtSeconds(stats.p75_lcp), cls: grade(stats.p75_lcp, GRADES.lcp[0], GRADES.lcp[1]), note: t('noteLcp', 'good ≤ 2.5s · poor > 4s') },
+				{ label: t('avgServer', 'Avg Server'), value: fmtSeconds(stats.avg_server), cls: grade(stats.avg_server, GRADES.server_time[0], GRADES.server_time[1]), note: t('noteServer', 'PHP render · good ≤ 0.5s') },
+				{ label: t('avgLoad', 'Avg Total Load'), value: fmtSeconds(stats.avg_load), cls: grade(stats.avg_load, GRADES.total_load[0], GRADES.total_load[1]), note: t('noteLoad', 'full page · good ≤ 3s') }
 			].forEach(function (c) {
 				var card = el('div', 'mdvrm-kpi mdvrm-kpi--' + c.cls);
 				card.appendChild(el('div', 'mdvrm-kpi__label', c.label));
@@ -346,10 +382,15 @@
 			pager.appendChild(el('span', 'mdvrm-pager__info', state.total + ' ' + t('items', 'events') + ' · ' + state.page + '/' + pages));
 			var mk = function (glyph, title, target) {
 				var b = el('button', 'button button-small', glyph);
+				var next = target();
 				b.type = 'button';
 				b.title = title;
 				b.setAttribute('aria-label', title);
+				b.disabled = pages <= 1 || next === state.page;
 				b.addEventListener('click', function () {
+					if (b.disabled) {
+						return;
+					}
 					state.page = target();
 					loadLogs();
 				});
@@ -365,9 +406,19 @@
 			var ths = table ? table.querySelectorAll('thead th[data-sort]') : [];
 			Array.prototype.forEach.call(ths, function (th) {
 				var key = th.getAttribute('data-sort');
-				var ind = el('span', 'mdvrm-sort-ind', state.orderBy === key ? (state.order === 'asc' ? '▲' : '▼') : '↕');
-				th.appendChild(ind);
-				th.setAttribute('aria-sort', state.orderBy === key ? (state.order === 'asc' ? 'ascending' : 'descending') : 'none');
+				var active = state.orderBy === key;
+				var indicator = th.querySelector('.mdvrm-sort-ind');
+				if (!indicator) {
+					indicator = el('span', 'mdvrm-sort-ind');
+					indicator.setAttribute('aria-hidden', 'true');
+					th.appendChild(indicator);
+				}
+				indicator.textContent = active ? (state.order === 'asc' ? '▲' : '▼') : '↕';
+				th.setAttribute('aria-sort', active ? (state.order === 'asc' ? 'ascending' : 'descending') : 'none');
+				if (th.dataset.mdvrmEnhanced === '1') {
+					return;
+				}
+				th.dataset.mdvrmEnhanced = '1';
 				th.addEventListener('click', function () {
 					if (state.orderBy === key) {
 						state.order = state.order === 'desc' ? 'asc' : 'desc';
@@ -383,22 +434,31 @@
 		}
 
 		function loadLogs() {
+			var id = ++seq.logs;
 			var p = filters();
 			p.page = state.page;
 			p.per_page = state.perPage;
 			api(cfg.restUrl, p).then(function (res) {
+				if (id !== seq.logs) {
+					return;
+				}
 				state.total = res.total;
 				renderRows(res.data);
 				renderPager();
 				setStatus(t('updated', 'Updated') + ' ' + new Date().toLocaleTimeString());
 			}).catch(function () {
-				setStatus(t('error', 'Failed to load data.'));
+				if (id === seq.logs) {
+					setStatus(t('error', 'Failed to load data.'));
+				}
 			});
 		}
 
 		function loadStats() {
+			var id = ++seq.stats;
 			api(cfg.statsUrl, filters()).then(function (stats) {
-				renderKpis(stats);
+				if (id === seq.stats) {
+					renderKpis(stats);
+				}
 			}).catch(function () { /* status handled by loadLogs */ });
 		}
 
@@ -411,7 +471,7 @@
 		renderPager();
 
 		applyBtn.addEventListener('click', function () {
-			readFilters();
+			applyFilters();
 			state.page = 1;
 			loadAll();
 		});
@@ -420,7 +480,10 @@
 			if (urlInp) { urlInp.value = ''; }
 			if (deviceSel) { deviceSel.value = ''; }
 			if (netSel) { netSel.value = ''; }
-			readFilters();
+			state.session = '';
+			state.url = '';
+			state.device = '';
+			state.net = '';
 			state.page = 1;
 			loadAll();
 		});
@@ -442,7 +505,6 @@
 			} catch (e) {
 				/* storage unavailable */
 			}
-			readFilters();
 			loadAll();
 		});
 		perSel.addEventListener('change', function () {
@@ -451,7 +513,6 @@
 			loadLogs();
 		});
 		refreshBtn.addEventListener('click', function () {
-			readFilters();
 			loadAll();
 		});
 
@@ -464,7 +525,6 @@
 			if (on) {
 				auto.timer = setInterval(function () {
 					if (!document.hidden) {
-						readFilters();
 						loadAll();
 					}
 				}, 10000);
@@ -497,7 +557,6 @@
 			});
 			document.addEventListener('visibilitychange', function () {
 				if (auto.on && autoChk.checked && !document.hidden) {
-					readFilters();
 					loadAll();
 				}
 			});
@@ -536,16 +595,18 @@
 			});
 		}
 
-		function buildTrendChart(trend, key) {
+		function buildTrendChart(trend, key, label) {
 			var wrap = el('div', 'mdvrm-chart');
 			if (!trend || !trend.length) {
 				return wrap;
 			}
 			var W = Math.min(560, (window.innerWidth || 800) - 130);
 			var H = 90;
-			var s = svg('svg', { width: W, height: H, viewBox: '0 0 ' + W + ' ' + H, role: 'img', 'aria-label': key });
+			var keyT = 'ttfb' === key ? t('avgTtfb', 'Avg TTFB') : 'lcp' === key ? t('p75Lcp', 'P75 LCP') : t('avgLoad', 'Avg Total Load');
+			var name = label || keyT;
+			var s = svg('svg', { width: W, height: H, viewBox: '0 0 ' + W + ' ' + H, role: 'img', 'aria-label': name });
 			var title = svg('title', {});
-			title.textContent = key;
+			title.textContent = name;
 			s.appendChild(title);
 			var max = 0;
 			trend.forEach(function (r) {
@@ -556,18 +617,22 @@
 			}
 			var bw = Math.max(4, Math.min(28, (W - trend.length * 2) / trend.length));
 			trend.forEach(function (r, i) {
-				var v = Number(r[key]) || 0;
-				var bh = Math.max(2, Math.round((v / max) * (H - 22)));
+				var raw = r[key];
+				var v = null == raw || '' === raw ? null : Number(raw);
+				var bh = (null === v || !isFinite(v) || v <= 0) ? 2 : Math.max(2, Math.round((v / max) * (H - 22)));
 				var rect = svg('rect', { x: i * (bw + 2), y: H - 12 - bh, width: bw, height: bh, fill: '#021d69', rx: 2 });
 				var tt = svg('title', {});
-				tt.textContent = r.day + ': ' + fmt(v) + 's · ' + r.count + ' views';
+				var pointDate = r.date || r.day || '';
+				tt.textContent = pointDate + ': ' + fmtSeconds(v) + ' · ' + r.count + ' ' + t('items', 'events');
 				rect.appendChild(tt);
 				s.appendChild(rect);
 			});
 			wrap.appendChild(s);
 			var legend = el('div', 'mdvrm-chart__legend');
-			legend.appendChild(el('span', null, trend[0].day));
-			legend.appendChild(el('span', null, trend[trend.length - 1].day));
+			var firstDate = trend[0].date || trend[0].day || '';
+			var lastDate = trend[trend.length - 1].date || trend[trend.length - 1].day || '';
+			legend.appendChild(el('span', null, firstDate));
+			legend.appendChild(el('span', null, lastDate));
 			wrap.appendChild(legend);
 			return wrap;
 		}
@@ -578,7 +643,7 @@
 			tbl.className = 'mdvrm-table';
 			var thead = document.createElement('thead');
 			var hr = document.createElement('tr');
-			['URL', colLabel, t('views', 'Views')].forEach(function (x) {
+			[t('url', 'URL'), colLabel, t('views', 'Views')].forEach(function (x) {
 				var th = el('th', null, x);
 				th.scope = 'col';
 				hr.appendChild(th);
@@ -589,7 +654,7 @@
 			(rows || []).forEach(function (r) {
 				var tr = document.createElement('tr');
 				tr.appendChild(urlCell(r.url));
-				tr.appendChild(el('td', null, fmt(r[valKey]) + 's'));
+				tr.appendChild(el('td', null, fmtSeconds(r[valKey])));
 				tr.appendChild(el('td', null, String(r.count)));
 				tb.appendChild(tr);
 			});
@@ -602,20 +667,19 @@
 			if (document.getElementById('mdvrm-report-modal')) {
 				return;
 			}
-			readFilters();
 			var overlay = el('div', 'mdvrm-modal-overlay');
 			overlay.id = 'mdvrm-report-modal';
 			var panel = el('div', 'mdvrm-modal-panel');
 			panel.setAttribute('role', 'dialog');
 			panel.setAttribute('aria-modal', 'true');
-			panel.setAttribute('aria-label', 'Performance report');
+			panel.setAttribute('aria-label', t('reportAria', 'Performance report'));
 			overlay.appendChild(panel);
 
 			var closeBtn = el('button', 'mdvrm-modal-close', '×');
 			closeBtn.type = 'button';
-			closeBtn.setAttribute('aria-label', 'Close');
+			closeBtn.setAttribute('aria-label', t('close', 'Close'));
 			panel.appendChild(closeBtn);
-			panel.appendChild(el('h2', 'mdvrm-modal-title', 'Performance Report'));
+			panel.appendChild(el('h2', 'mdvrm-modal-title', t('reportTitle', 'Performance Report')));
 			var subtitle = el('p', 'mdvrm-modal-sub', t('loading', 'Loading…'));
 			panel.appendChild(subtitle);
 			var body = el('div', 'mdvrm-modal-body');
@@ -642,14 +706,14 @@
 			closeBtn.focus();
 
 			api(cfg.statsUrl, filters()).then(function (stats) {
-				subtitle.textContent = 'Based on ' + stats.count + ' ' + t('items', 'events') + ' · ' + periodLabel();
+				subtitle.textContent = t('basedOn', 'Based on') + ' ' + stats.count + ' ' + t('items', 'events') + ' · ' + periodLabel();
 
 				var grid = el('div', 'mdvrm-kpis');
 				[
 					{ label: t('events', 'Events'), value: String(stats.count), cls: 'neutral' },
-					{ label: 'Avg TTFB', value: fmt(stats.avg_ttfb) + 's', cls: grade(stats.avg_ttfb, GRADES.ttfb[0], GRADES.ttfb[1]) },
-					{ label: 'P75 LCP', value: fmt(stats.p75_lcp) + 's', cls: grade(stats.p75_lcp, GRADES.lcp[0], GRADES.lcp[1]) },
-					{ label: 'Avg load', value: fmt(stats.avg_load) + 's', cls: grade(stats.avg_load, GRADES.total_load[0], GRADES.total_load[1]) }
+					{ label: t('avgTtfb', 'Avg TTFB'), value: fmtSeconds(stats.avg_ttfb), cls: grade(stats.avg_ttfb, GRADES.ttfb[0], GRADES.ttfb[1]) },
+					{ label: t('p75Lcp', 'P75 LCP'), value: fmtSeconds(stats.p75_lcp), cls: grade(stats.p75_lcp, GRADES.lcp[0], GRADES.lcp[1]) },
+					{ label: t('avgLoad', 'Avg load'), value: fmtSeconds(stats.avg_load), cls: grade(stats.avg_load, GRADES.total_load[0], GRADES.total_load[1]) }
 				].forEach(function (c) {
 					var card = el('div', 'mdvrm-kpi mdvrm-kpi--' + c.cls);
 					card.appendChild(el('div', 'mdvrm-kpi__label', c.label));
@@ -659,19 +723,21 @@
 				body.appendChild(grid);
 
 				if (stats.trend && stats.trend.length) {
-					body.appendChild(el('h3', 'mdvrm-modal-h3', 'TTFB trend · daily average'));
-					body.appendChild(buildTrendChart(stats.trend, 'avg_ttfb'));
-					body.appendChild(el('h3', 'mdvrm-modal-h3', 'LCP trend · daily average'));
-					body.appendChild(buildTrendChart(stats.trend, 'avg_lcp'));
+					var ttfbLabel = t('ttfbTrend', 'TTFB trend · daily average');
+					var lcpLabel = t('lcpTrend', 'LCP trend · daily average');
+					body.appendChild(el('h3', 'mdvrm-modal-h3', ttfbLabel));
+					body.appendChild(buildTrendChart(stats.trend, 'avg_ttfb', ttfbLabel));
+					body.appendChild(el('h3', 'mdvrm-modal-h3', lcpLabel));
+					body.appendChild(buildTrendChart(stats.trend, 'avg_lcp', lcpLabel));
 				}
 
-				body.appendChild(el('h3', 'mdvrm-modal-h3', 'Slowest pages by LCP'));
-				body.appendChild(slowTable(stats.slowest_lcp, 'Avg LCP', 'avg_lcp'));
-				body.appendChild(el('h3', 'mdvrm-modal-h3', 'Heaviest by server time'));
-				body.appendChild(slowTable(stats.slowest_srv, 'Avg server', 'avg_srv'));
+				body.appendChild(el('h3', 'mdvrm-modal-h3', t('slowestLcp', 'Slowest pages by LCP')));
+				body.appendChild(slowTable(stats.slowest_lcp, t('avgLcp', 'Avg LCP'), 'avg_lcp'));
+				body.appendChild(el('h3', 'mdvrm-modal-h3', t('heaviestSrv', 'Heaviest by server time')));
+				body.appendChild(slowTable(stats.slowest_srv, t('avgSrv', 'Avg server'), 'avg_srv'));
 
 				if ((stats.devices || []).length) {
-					body.appendChild(el('h3', 'mdvrm-modal-h3', 'Devices'));
+					body.appendChild(el('h3', 'mdvrm-modal-h3', t('devices', 'Devices')));
 					var devWrap = el('p', 'mdvrm-modal-devices');
 					stats.devices.forEach(function (d) {
 						var b = el('span', 'mdvrm-pill', (d.device ? d.device : UNKNOWN) + ' · ' + d.count);
@@ -681,7 +747,7 @@
 					body.appendChild(devWrap);
 				}
 
-				var sendBtn = el('button', 'button button-primary', 'Send Report to Email');
+				var sendBtn = el('button', 'button button-primary', t('sendReport', 'Send Report to Email'));
 				sendBtn.type = 'button';
 				sendBtn.style.marginTop = '12px';
 				body.appendChild(sendBtn);

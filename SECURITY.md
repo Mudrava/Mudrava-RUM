@@ -28,7 +28,8 @@ Mudrava RUM is built with a privacy-first, security-conscious architecture:
 
 ### Data Collection
 
-- **No PII** — the plugin does not collect names, emails, IP addresses, or any personally identifiable information
+- **No account identifiers** — names, email addresses, IP addresses, and identity-profile data are not collected or stored
+- **Role labels only** — a non-unique logged-in visitor role may be stored for role-based filtering and exclusion
 - **No cookies** — session IDs use `sessionStorage` (per-tab, cleared on close)
 - **No external services** — all data stays in your WordPress database; zero outbound requests
 
@@ -44,6 +45,9 @@ Mudrava RUM is built with a privacy-first, security-conscious architecture:
 - All user input is sanitized via `sanitize_text_field()`, `sanitize_email()`, `absint()`, `floatval()`
 - All output is escaped via `esc_html()`, `esc_attr()`, `esc_url()`, `wp_json_encode()`
 - Admin JavaScript uses safe DOM methods (`createElement`, `textContent`) — no `innerHTML` with dynamic data
+- Oversized ingestion payloads are rejected before JSON decoding
+- Peer-address headers are honored only when the direct peer matches configured trusted proxies
+- Rate-limit counters use time-bucketed, HMAC-hashed identities rather than storing client addresses
 
 ### Data Retention
 
