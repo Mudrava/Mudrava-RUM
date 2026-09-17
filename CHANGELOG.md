@@ -6,10 +6,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [1.0.1] — 2026-09-18
 
+First release that carries the 2026-09-15 hardening work (commits after the 1.0.0 tag) to
+WordPress.org, where the 1.0.0 package was cut before it landed.
+
+### Security
+
+- Trusted-proxy header trust restricted to configured proxy CIDRs with CIDR validation;
+  payload-size limits and metric caps on ingestion; URL/device/network normalization.
+
 ### Changed
 
+- Versioned dashboard aggregate caches, batched retention cleanup, null-safe metrics, local-day report grouping.
+- Live Monitor status badges with localized labels; settings shortcut in the Plugins list.
 - Verified compatibility metadata for WordPress 7.1.1: activation, Live Monitor, stats and settings
-  screens, REST ingestion endpoint and front-end collector smoke-tested on PHP 8.5. No functional changes.
+  screens, REST ingestion endpoint and front-end collector smoke-tested on PHP 8.5.
+
+### Added
+
+- Developer hooks: `mdvrm_log_inserted`, `mdvrm_report_email_subject`, `mdvrm_alert_email_subject`.
 
 ## [1.0.0] — 2026-09-02
 

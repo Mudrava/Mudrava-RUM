@@ -98,7 +98,11 @@ Collected data is automatically purged based on your configured retention settin
 == Changelog ==
 
 = 1.0.1 =
-* Tested: verified full compatibility with WordPress 7.1.1 - activation, Live Monitor, stats and settings screens, ingestion endpoint and collector smoke-tested on PHP 8.5. No functional changes.
+* Security: ingestion and rate limiting hardened - trusted-proxy header trust restricted to configured proxies, CIDR validation, payload size limits, metric caps, URL/device/network normalization.
+* Reliability: versioned dashboard aggregate caches, batched retention cleanup, null-safe metrics, local-day report grouping.
+* UX: Live Monitor status badges with localized labels; settings shortcut in the Plugins list.
+* Added developer hooks: mdvrm_log_inserted, mdvrm_report_email_subject, mdvrm_alert_email_subject.
+* Tested: verified full compatibility with WordPress 7.1.1 - activation, Live Monitor, stats and settings screens, ingestion endpoint and collector smoke-tested on PHP 8.5.
 
 = 1.0.0 =
 * Full admin UI redesign: responsive layout, color-coded KPI cards, SVG trend charts, CSV export, accessible controls
