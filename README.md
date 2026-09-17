@@ -14,7 +14,7 @@
   <a href="https://wordpress.org/plugins/mudrava-rum/"><img src="https://img.shields.io/wordpress/plugin/v/mudrava-rum" alt="WordPress plugin version"></a>
   <a href="https://wordpress.org/plugins/mudrava-rum/"><img src="https://img.shields.io/wordpress/plugin/dt/mudrava-rum" alt="WordPress plugin downloads"></a>
   <a href="https://wordpress.org/plugins/mudrava-rum/"><img src="https://img.shields.io/badge/WordPress-6.2%2B-blue?logo=wordpress" alt="WordPress 6.2+"></a>
-  <img src="https://img.shields.io/badge/Tested%20up%20to-WordPress%207.1-21759B?logo=wordpress&logoColor=white" alt="Tested up to WordPress 7.1">
+  <img src="https://img.shields.io/badge/Tested%20up%20to-WordPress%207.1.1-21759B?logo=wordpress&logoColor=white" alt="Tested up to WordPress 7.1.1">
   <a href="https://www.php.net/"><img src="https://img.shields.io/badge/PHP-7.4%2B-777BB4?logo=php&logoColor=white" alt="PHP 7.4+"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-GPLv2-green" alt="GPL-2.0-or-later"></a>
   <a href="https://mudrava.com/en/"><img src="https://img.shields.io/badge/by-MUDRAVA-021D69" alt="MUDRAVA"></a>
@@ -60,7 +60,7 @@ Synthetic tools like Lighthouse and PageSpeed Insights test from a single locati
 ## Requirements
 
 - WordPress 6.2+
-- Tested up to WordPress 7.1
+- Tested up to WordPress 7.1.1
 - PHP 7.4+
 - WP REST API enabled
 - WP-Cron for scheduled emails (or external cron)

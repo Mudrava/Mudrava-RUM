@@ -2,8 +2,8 @@
 Contributors: mudrava
 Tags: rum, performance, monitoring, lcp, ttfb
 Requires at least: 6.2
-Tested up to: 7.1
-Stable tag: 1.0.0
+Tested up to: 7.1.1
+Stable tag: 1.0.1
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -96,6 +96,9 @@ This plugin does not use cookies. Session IDs are stored in the browser's sessio
 Collected data is automatically purged based on your configured retention settings (maximum records and retention days).
 
 == Changelog ==
+
+= 1.0.1 =
+* Tested: verified full compatibility with WordPress 7.1.1 - activation, Live Monitor, stats and settings screens, ingestion endpoint and collector smoke-tested on PHP 8.5. No functional changes.
 
 = 1.0.0 =
 * Full admin UI redesign: responsive layout, color-coded KPI cards, SVG trend charts, CSV export, accessible controls

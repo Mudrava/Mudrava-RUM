@@ -4,6 +4,13 @@ All notable changes to Mudrava RUM will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.0.1] — 2026-09-18
+
+### Changed
+
+- Verified compatibility metadata for WordPress 7.1.1: activation, Live Monitor, stats and settings
+  screens, REST ingestion endpoint and front-end collector smoke-tested on PHP 8.5. No functional changes.
+
 ## [1.0.0] — 2026-09-02
 
 ### Added
