@@ -1,6 +1,6 @@
 === Mudrava RUM ===
 Contributors: mudrava
-Tags: rum, performance, monitoring, lcp, ttfb, web-performance, core-web-vitals, analytics, observability, speed
+Tags: monitoring, performance, rum, lcp, ttfb
 Requires at least: 6.2
 Tested up to: 7.1.3
 Stable tag: 1.0.1
