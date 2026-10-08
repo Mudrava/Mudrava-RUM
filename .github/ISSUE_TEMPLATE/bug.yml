@@ -1,0 +1,42 @@
+name: Bug report
+description: Something does not work as documented
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        For security issues follow SECURITY.md, not this form.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+    validations: { required: true }
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect?
+    validations: { required: true }
+  - type: dropdown
+    id: symptom
+    attributes:
+      label: Symptom class
+      description: What kind of failure is this?
+      options:
+        - No data collected at all
+        - Data collected but numbers look wrong
+        - Dashboard or reports broken
+        - Email summary not received
+        - Performance impact
+        - Other
+  - type: textarea
+    id: env
+    attributes:
+      label: Environment
+      value: |
+        WordPress:
+        PHP:
+        Plugin version:
+        Host:
+        Page cache / CDN in front:
+        Sampling rate setting:
+    validations: { required: true }

@@ -4,7 +4,7 @@ All notable changes to Mudrava RUM will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-## [1.0.1] — 2026-09-18
+## [1.0.1] - 2026-09-18
 
 First release that carries the 2026-09-15 hardening work (commits after the 1.0.0 tag) to
 WordPress.org, where the 1.0.0 package was cut before it landed.
@@ -25,7 +25,7 @@ WordPress.org, where the 1.0.0 package was cut before it landed.
 
 - Developer hooks: `mdvrm_log_inserted`, `mdvrm_report_email_subject`, `mdvrm_alert_email_subject`.
 
-## [1.0.0] — 2026-09-02
+## [1.0.0] - 2026-09-02
 
 ### Added
 
@@ -67,10 +67,10 @@ WordPress.org, where the 1.0.0 package was cut before it landed.
 - Request-state tracking and settings updates are reset between integration requests to prevent stale sampling decisions
 - Scheduled reports and local-day analytics use WordPress site timezone consistently
 - KPI notes and status labels are localized through the admin script payload
-- Missing performance metrics now display as `—` instead of `0.00s` in dashboard KPIs, trend points, report tables, and email reports
+- Missing performance metrics now display as `-` instead of `0.00s` in dashboard KPIs, trend points, report tables, and email reports
 - Single-site uninstall no longer calls multisite-only blog-switch helpers; all data is removed without a fatal error
 
-## [0.2.0] — 2026-04-01
+## [0.2.0] - 2026-04-01
 
 ### Changed
 
@@ -78,7 +78,7 @@ WordPress.org, where the 1.0.0 package was cut before it landed.
 - Updated slug to `mudrava-rum`, prefix to `mdvrm_`, text domain to `mudrava-rum`
 - Updated all class names, function names, constants, hooks, and file names
 
-## [0.1.8] — 2026-03-20
+## [0.1.8] - 2026-03-20
 
 ### Added
 
