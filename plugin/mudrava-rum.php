@@ -3,7 +3,7 @@
  * Plugin Name: Mudrava RUM
  * Plugin URI: https://wordpress.org/plugins/mudrava-rum/
  * Description: Real User Monitoring (RUM) for WordPress websites to track performance metrics and user experience.
- * Version: 1.0.1
+ * Version: 1.0.2
  * Requires at least: 6.2
  * Requires PHP: 7.4
  * Author: MUDRAVA
@@ -20,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'MDVRM_VERSION', '1.0.0' );
+define( 'MDVRM_VERSION', '1.0.2' );
 define( 'MDVRM_PLUGIN_FILE', __FILE__ );
 define( 'MDVRM_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'MDVRM_PLUGIN_URL', plugin_dir_url( __FILE__ ) );

@@ -4,6 +4,22 @@ All notable changes to Mudrava RUM will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.0.2] - 2026-11-02
+
+### Fixed
+
+- The `MDVRM_VERSION` constant was left at 1.0.0 in the 1.0.1 release, so the admin
+  version badge, the asset version fallback and the stored `mdvrm_version` option all
+  reported the wrong version. It now matches the plugin header (1.0.2); upgrading runs
+  the idempotent schema check once and records the correct version.
+
+### Verified
+
+- Full compatibility with WordPress 7.1.4 confirmed on a fresh install (PHP 8.3):
+  ingestion, queries and stats, reports and alerts, and tracking collector integration
+  suites all pass; PHPCS clean on PHP 7.4, 8.0 and 8.3. Runtime code is otherwise
+  unchanged.
+
 ## [1.0.1] - 2026-09-18
 
 First release that carries the 2026-09-15 hardening work (commits after the 1.0.0 tag) to

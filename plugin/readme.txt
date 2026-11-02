@@ -2,8 +2,8 @@
 Contributors: mudrava
 Tags: monitoring, performance, rum, lcp, ttfb
 Requires at least: 6.2
-Tested up to: 7.1.3
-Stable tag: 1.0.1
+Tested up to: 7.1.4
+Stable tag: 1.0.2
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -96,6 +96,10 @@ This plugin does not use cookies. Session IDs are stored in the browser's sessio
 Collected data is automatically purged based on your configured retention settings (maximum records and retention days).
 
 == Changelog ==
+
+= 1.0.2 =
+* Tested: verified full compatibility with WordPress 7.1.4 - ingestion, queries and stats, reports and alerts, and the tracking collector suites all pass on a fresh WordPress 7.1.4 install (PHP 8.3). PHPCS clean on PHP 7.4, 8.0 and 8.3. No changes to the runtime code.
+* Fixed: the version badge, asset fallback and stored version now report the release version - the `MDVRM_VERSION` constant was left at 1.0.0 in the previous release.
 
 = 1.0.1 =
 * Security: ingestion and rate limiting hardened - trusted-proxy header trust restricted to configured proxies, CIDR validation, payload size limits, metric caps, URL/device/network normalization.
