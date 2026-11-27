@@ -87,6 +87,10 @@ class MDVRM_Reports {
 		MDVRM_DB::purge_older_than( $settings['retention_days'] );
 		MDVRM_DB::enforce_limit( $settings['limit'] );
 
+		if ( $this->plugin->unsubscribe()->is_opted_out( (string) $settings['alert_recipient'] ) ) {
+			return;
+		}
+
 		if ( $this->report_due() ) {
 			$this->send_report();
 		}
@@ -145,6 +149,58 @@ class MDVRM_Reports {
 	}
 
 	/**
+	 * Email headers for a recipient: one-click unsubscribe per RFC 8058.
+	 *
+	 * @param string $recipient Recipient email address.
+	 * @return array
+	 */
+	protected function mail_headers( string $recipient ): array {
+		$link = $this->plugin->unsubscribe()->link( $recipient );
+		if ( '' === $link ) {
+			return array();
+		}
+
+		return array(
+			'List-Unsubscribe: <' . $link . '>',
+			'List-Unsubscribe-Post: List-Unsubscribe=One-Click',
+		);
+	}
+
+	/**
+	 * Plain-text footer with the opt-out link, appended after body filters.
+	 *
+	 * @param string $body      Email body.
+	 * @param string $recipient Recipient email address.
+	 * @return string
+	 */
+	protected function with_footer( string $body, string $recipient ): string {
+		$link = $this->plugin->unsubscribe()->link( $recipient );
+		if ( '' === $link ) {
+			return $body;
+		}
+
+		/**
+		 * Filter the opt-out line appended to every plugin email.
+		 *
+		 * @param string $footer    Footer text including the unsubscribe URL.
+		 * @param string $link      Unsubscribe URL.
+		 * @param string $recipient Recipient email address.
+		 */
+		$footer = apply_filters(
+			'mdvrm_email_unsubscribe_line',
+			"\n" . sprintf(
+				/* translators: %s: unsubscribe URL. */
+				__( 'Unsubscribe from these emails: %s', 'mudrava-rum' ),
+				$link
+			),
+			$link,
+			$recipient
+		);
+
+		return rtrim( $body, "\n" ) . "\n" . $footer . "\n";
+	}
+
+	/**
 	 * Send summary email for the reporting period.
 	 *
 	 * @param bool $manual Whether triggered manually from admin UI.
@@ -154,6 +210,11 @@ class MDVRM_Reports {
 		$settings  = $this->plugin->settings()->all();
 		$recipient = $settings['alert_recipient'];
 		if ( ! $recipient || ! is_email( $recipient ) ) {
+			return false;
+		}
+
+		$unsubscribed = $this->plugin->unsubscribe()->is_opted_out( $recipient );
+		if ( $unsubscribed ) {
 			return false;
 		}
 
@@ -203,6 +264,8 @@ class MDVRM_Reports {
 		 */
 		$body = apply_filters( 'mdvrm_report_email_body', $body, $recipient, $stats );
 
+		$body = $this->with_footer( $body, $recipient );
+
 		/* translators: %s: site name. */
 		$default_subject = sprintf( __( 'Mudrava RUM report: %s', 'mudrava-rum' ), $site_name );
 
@@ -222,7 +285,7 @@ class MDVRM_Reports {
 			$stats
 		);
 
-		$sent = wp_mail( $recipient, $subject, $body );
+		$sent = wp_mail( $recipient, $subject, $body, $this->mail_headers( $recipient ) );
 
 		if ( $sent && ! $manual ) {
 			update_option( 'mdvrm_last_report_ts', time() );
@@ -262,6 +325,11 @@ class MDVRM_Reports {
 			return;
 		}
 
+		// Checked last so a stopped recipient costs no extra query per pageview.
+		if ( $this->plugin->unsubscribe()->is_opted_out( $recipient ) ) {
+			return;
+		}
+
 		update_option( 'mdvrm_last_alert_ts', time() );
 		update_option( 'mdvrm_ttfb_streak', 0 );
 
@@ -277,11 +345,10 @@ class MDVRM_Reports {
 		 */
 		$subject = apply_filters( 'mdvrm_alert_email_subject', $subject, $streak, $threshold );
 
-		wp_mail(
-			$recipient,
-			$subject,
-			/* translators: 1: streak count, 2: threshold in seconds, 3: site name. */
-			sprintf( __( '%1$d consecutive pageviews exceeded %2$s of server response time on %3$s.', 'mudrava-rum' ), $streak, $threshold . 's', get_bloginfo( 'name' ) )
-		);
+		/* translators: 1: streak count, 2: threshold in seconds, 3: site name. */
+		$alert_body = sprintf( __( '%1$d consecutive pageviews exceeded %2$s of server response time on %3$s.', 'mudrava-rum' ), $streak, $threshold . 's', get_bloginfo( 'name' ) );
+		$alert_body = $this->with_footer( $alert_body, $recipient );
+
+		wp_mail( $recipient, $subject, $alert_body, $this->mail_headers( $recipient ) );
 	}
 }

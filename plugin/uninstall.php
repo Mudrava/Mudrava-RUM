@@ -26,6 +26,8 @@ if ( ! function_exists( 'mdvrm_uninstall_current_site' ) ) {
 		delete_option( 'mdvrm_last_alert_ts' );
 		delete_option( 'mdvrm_ttfb_streak' );
 		delete_option( 'mdvrm_stats_cache_version' );
+		delete_option( 'mdvrm_optouts' );
+		delete_option( 'mdvrm_unsub_secret' );
 
 		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter.
 		$mdvrm_transient_names = $wpdb->get_col(

@@ -118,6 +118,11 @@ function mdvrm_reset() {
 	delete_option( 'mdvrm_last_alert_ts' );
 	delete_option( 'mdvrm_last_report_ts' );
 	delete_option( 'mdvrm_version' );
+	delete_option( 'mdvrm_optouts' );
+	delete_option( 'mdvrm_unsub_secret' );
+	if ( class_exists( 'MDVRM_Unsubscribe' ) && class_exists( 'MDVRM_Plugin' ) ) {
+		MDVRM_Plugin::instance()->unsubscribe()->reset_cache();
+	}
 	$wpdb->query( "DELETE FROM {$wpdb->options} WHERE option_name LIKE '\\_transient\\_mdvrm\\_rl\\_%'" ); // phpcs:ignore WordPress.DB
 	$wpdb->query( "DELETE FROM {$wpdb->options} WHERE option_name LIKE '\\_transient\\_timeout\\_mdvrm\\_rl\\_%'" ); // phpcs:ignore WordPress.DB
 	$GLOBALS['mdvrm_mail'] = array();

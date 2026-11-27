@@ -14,7 +14,7 @@
   <a href="https://wordpress.org/plugins/mudrava-rum/"><img src="https://img.shields.io/wordpress/plugin/v/mudrava-rum" alt="WordPress plugin version"></a>
   <a href="https://wordpress.org/plugins/mudrava-rum/"><img src="https://img.shields.io/wordpress/plugin/dt/mudrava-rum" alt="WordPress plugin downloads"></a>
   <a href="https://wordpress.org/plugins/mudrava-rum/"><img src="https://img.shields.io/badge/WordPress-6.2%2B-blue?logo=wordpress" alt="WordPress 6.2+"></a>
-  <img src="https://img.shields.io/badge/Tested%20up%20to-WordPress%207.1.3-21759B?logo=wordpress&logoColor=white" alt="Tested up to WordPress 7.1.3">
+  <img src="https://img.shields.io/badge/Tested%20up%20to-WordPress%207.1-21759B?logo=wordpress&logoColor=white" alt="Tested up to WordPress 7.1">
   <a href="https://www.php.net/"><img src="https://img.shields.io/badge/PHP-7.4%2B-777BB4?logo=php&logoColor=white" alt="PHP 7.4+"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-GPLv2-green" alt="GPL-2.0-or-later"></a>
   <a href="https://mudrava.com/en/"><img src="https://img.shields.io/badge/by-MUDRAVA-021D69" alt="MUDRAVA"></a>
@@ -41,6 +41,7 @@ Synthetic tools like Lighthouse and PageSpeed Insights test from a single locati
 - **Live Monitor dashboard** - real-time log with sortable columns and filters
 - **Performance reports** - on-demand modal with averages, P75 LCP, slowest pages
 - **Email summaries** - scheduled daily/weekly via WP-Cron
+- **One-click unsubscribe** - every email ends with a signed link, no login needed
 - **Critical TTFB alerts** - configurable threshold, consecutive trigger, cooldown
 - **Smart sampling** - 100%, 50%, or 10% traffic sampling rate
 - **Privacy-first** - no account identifiers, no cookies, no external services, all data stays in your DB
@@ -60,7 +61,7 @@ Synthetic tools like Lighthouse and PageSpeed Insights test from a single locati
 ## Requirements
 
 - WordPress 6.2+
-- Tested up to WordPress 7.1.3
+- Tested up to WordPress 7.1
 - PHP 7.4+
 - WP REST API enabled
 - WP-Cron for scheduled emails (or external cron)
@@ -82,6 +83,25 @@ No theme edits required. The frontend collector loads automatically.
 | `/wp-json/mudrava-rum/v1/logs` | GET | `manage_options` | Paginated log query with filters |
 | `/wp-json/mudrava-rum/v1/stats` | GET | `manage_options` | Aggregated statistics |
 | `/wp-json/mudrava-rum/v1/send-report` | POST | `manage_options` | Trigger email report |
+
+## Email opt-out
+
+Report recipients stop the emails themselves, from the message, with no login:
+
+| Surface | Method | Auth | Description |
+|---|---|---|---|
+| `/wp-admin/admin-post.php?action=mdvrm_unsub&t=<token>` | GET or POST | Signed token | Unsubscribes one recipient |
+| `/wp-admin/admin-post.php?action=mdvrm_resubscribe&_wpnonce=<nonce>` | GET | `manage_options` | Resume reports from Settings |
+
+How it is held safe:
+
+- The token is `HMAC-SHA256( 'mdvrm_unsub|' + address, site secret )` truncated to 40 hex characters, 160 bits. It is derived, not stored, so there is no token table and nothing to expire.
+- The secret is generated once into a non-autoloaded option and is independent of core salts, so links already sitting in inboxes keep working after a salt rotation.
+- The address never appears in the URL. A token is matched against a short closed candidate list (configured recipient, admin email, previously opted-out addresses) with `hash_equals()`.
+- An opt-out is stored as `address => timestamp` in the `mdvrm_optouts` option, capped in size, and it stops both scheduled reports and TTFB alerts for that address only. Other recipients keep receiving emails.
+- Every message carries `List-Unsubscribe` and `List-Unsubscribe-Post: List-Unsubscribe=One-Click` (RFC 8058), so a compliant mail client offers its own unsubscribe button that posts for you.
+- Requests that look like link previews or scanners (`X-Purpose: preview`, `X-Moz: prefetch`, `Sec-Purpose: prefetch`) answer without changing any state. Method overrides are rejected, forged tokens are rate limited per peer address, the response page is `no-store` and `noindex`, and it never echoes an address back.
+- Settings shows an "Emails are paused" notice with a Resume reports button whenever the configured recipient has unsubscribed.
 
 ## Hooks for Developers
 
@@ -119,6 +139,21 @@ add_filter( 'mdvrm_alert_email_subject', function ( $subject ) {
     return $subject;
 } );
 
+// Change the unsubscribe line appended to every email
+add_filter( 'mdvrm_email_unsubscribe_line', function ( $footer, $link, $recipient ) {
+    return $footer;
+}, 10, 3 );
+
+// A recipient stopped the emails
+add_action( 'mdvrm_unsubscribed', function ( $email ) {
+    // ...
+} );
+
+// A recipient was re-subscribed from the settings page
+add_action( 'mdvrm_resubscribed', function ( $email ) {
+    // ...
+} );
+
 // Action after plugin is fully loaded
 do_action( 'mdvrm_loaded', $plugin );
 ```
@@ -140,7 +175,9 @@ do_action( 'mdvrm_loaded', $plugin );
 | `user_role` | Non-unique role label for tracked logged-in visitors |
 | `session_id` | Random ID (sessionStorage, not a cookie) |
 
-**No account identifiers are collected.** Emails, usernames, and identity profile data are not stored. No cookies are set. No data leaves your server.
+**No account identifiers are collected from visitors.** Emails, usernames, and identity profile data are not stored in the metrics table. No cookies are set. No data leaves your server.
+
+The only address the plugin can ever store is a report recipient that used its unsubscribe link. That entry lives in the `mdvrm_optouts` option as `address => timestamp`, it is not joined to any visitor record, and deleting the plugin removes it.
 
 ## Development
 
@@ -153,6 +190,35 @@ composer lint
 
 # Auto-fix coding standard issues
 composer lint:fix
+
+# Refresh the translation template
+php tools/make-pot.php
+```
+
+### Integration stand (Docker)
+
+`tests/docker-compose.stand.yml` starts MySQL, WordPress on PHP 8.3, WP-CLI, and Mailpit. It mounts
+`plugin/` directly into `wp-content/plugins/mudrava-rum`, so edits on the host are live inside the site.
+
+```bash
+bash tests/bootstrap-stand.sh   # core install, plugin activation, Plugin Check, demo data
+bash tests/run.sh               # five integration suites run against the live stand
+```
+
+- Site: `http://localhost:8490`, admin `stand` / `stand-local-dev`, bound to 127.0.0.1 only
+- Mailpit: `http://localhost:8491`. It is the stand's `wp_mail` transport, so a real message arrives
+  with its `List-Unsubscribe` headers and its unsubscribe link can be opened in a browser
+- One real report, with the link printed:
+  `docker compose -f tests/docker-compose.stand.yml exec -T wp wp --allow-root eval-file /var/www/dev/tests/stand-mail-check.php`
+
+### WordPress.org Plugin Check
+
+Plugin Check runs inside the stand and must report nothing before a release:
+
+```bash
+docker compose -f tests/docker-compose.stand.yml exec -T wpcli wp --allow-root plugin check mudrava-rum
+docker compose -f tests/docker-compose.stand.yml down              # keeps the data
+docker compose -f tests/docker-compose.stand.yml down -v           # also drops it
 ```
 
 ## Contributing

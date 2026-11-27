@@ -147,9 +147,15 @@
 					return { ok: r.ok, j: j };
 				});
 			}).then(function (res) {
-				window.alert(res.ok && res.j && res.j.status === 'sent'
-					? t('sentOk', 'Email sent successfully.')
-					: t('sentFail', 'Could not send email. Check mail settings and recipient.'));
+				var msg;
+				if (res.ok && res.j && res.j.status === 'sent') {
+					msg = t('sentOk', 'Email sent successfully.');
+				} else if (res.j && res.j.message) {
+					msg = res.j.message;
+				} else {
+					msg = t('sentFail', 'Could not send email. Check mail settings and recipient.');
+				}
+				window.alert(msg);
 			}).catch(function () {
 				window.alert(t('sentFail', 'Could not send email. Check mail settings and recipient.'));
 			}).finally(function () {
@@ -766,7 +772,9 @@
 							return { ok: r.ok, j: j };
 						});
 					}).then(function (res) {
-						sendBtn.textContent = res.ok && res.j && res.j.status === 'sent' ? t('sentOk', 'Email sent successfully.') : t('sentFail', 'Could not send email.');
+						sendBtn.textContent = res.ok && res.j && res.j.status === 'sent'
+							? t('sentOk', 'Email sent successfully.')
+							: ( res.j && res.j.message ? res.j.message : t('sentFail', 'Could not send email.') );
 					}).catch(function () {
 						sendBtn.textContent = t('sentFail', 'Could not send email.');
 					});

@@ -21,11 +21,13 @@ for f in tests/[0-9]*.php; do
 	printf '=== %s ===\n' "$f"
 	out="$(docker exec -w "$WP_PATH" "$CONTAINER" wp eval-file "/var/www/dev/${f}" --allow-root 2>&1)"
 	rc=$?
-	echo "$out" | grep -E "FAIL|Fatal|Warning|Deprecated" || true
-	if [ $rc -eq 0 ]; then
+	fails="$(printf '%s\n' "$out" | grep -cE '^FAIL |MAILFAIL|Fatal error|Parse error')" || fails=0
+	[ -z "$fails" ] && fails=0
+	printf '%s\n' "$out" | grep -E "FAIL|Fatal|Warning|Deprecated" || true
+	if [ $rc -eq 0 ] && [ "$fails" -eq 0 ]; then
 		printf 'SUITE PASS %s\n' "$f"
 	else
-		printf 'SUITE FAIL %s (rc=%d)\n' "$f" "$rc"
+		printf 'SUITE FAIL %s (rc=%d, failed assertions=%d)\n' "$f" "$rc" "$fails"
 		echo "$out" | tail -20
 		overall=1
 	fi

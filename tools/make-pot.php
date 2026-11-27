@@ -12,6 +12,10 @@ $pot_path    = $plugin_root . '/languages/mudrava-rum.pot';
 $domain      = 'mudrava-rum';
 $functions   = array( '__', '_e', 'esc_html__', 'esc_html_e', 'esc_attr__', 'esc_attr_e' );
 
+// Take the version from the plugin header so the template never drifts from the release.
+$plugin_source = (string) file_get_contents( $plugin_root . '/mudrava-rum.php' );
+$plugin_version = preg_match( '/^[ \t]*\*[ \t]*Version:[ \t]*([0-9.]+)/m', $plugin_source, $version_match ) ? $version_match[1] : '0.0.0';
+
 $it      = new RecursiveIteratorIterator( new RecursiveDirectoryIterator( $plugin_root, FilesystemIterator::SKIP_DOTS ) );
 $files   = array();
 $strings = array();
@@ -137,7 +141,7 @@ $output .= "# This file is distributed under the GPLv2 or later.\n";
 $output .= "msgid \"\"\n";
 $output .= "msgstr \"\"\n";
 $header_lines = array(
-	'Project-Id-Version: Mudrava RUM 1.0.0',
+	'Project-Id-Version: Mudrava RUM ' . $plugin_version,
 	'Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/mudrava-rum',
 	'Last-Translator: FULL NAME <EMAIL@ADDRESS>',
 	'Language-Team: LANGUAGE <LL@li.org>',

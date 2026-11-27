@@ -4,6 +4,7 @@
 
 | Version | Supported |
 |---------|-----------|
+| 1.1.x   | Yes       |
 | 1.0.x   | Yes       |
 | 0.x     | No        |
 
@@ -28,8 +29,9 @@ Mudrava RUM is built with a privacy-first, security-conscious architecture:
 
 ### Data Collection
 
-- **No account identifiers** - names, email addresses, IP addresses, and identity-profile data are not collected or stored
+- **No account identifiers** - names, email addresses, IP addresses, and identity-profile data are not collected or stored in visitor records
 - **Role labels only** - a non-unique logged-in visitor role may be stored for role-based filtering and exclusion
+- **Report recipient** - the single configured recipient address lives in plugin settings. If that recipient unsubscribes, the address and the time of the opt-out are stored so the plugin stops emailing it; visitor records still hold no email address and the entry is removed on re-subscription or uninstall
 - **No cookies** - session IDs use `sessionStorage` (per-tab, cleared on close)
 - **No external services** - all data stays in your WordPress database; zero outbound requests
 
@@ -38,6 +40,18 @@ Mudrava RUM is built with a privacy-first, security-conscious architecture:
 - **Admin endpoints** (`/logs`, `/stats`, `/send-report`) require `manage_options` capability via WordPress REST API authentication
 - **Public endpoint** (`/collect`) uses a custom nonce (`X-MDVRM-Nonce` header) to prevent unauthorized submissions while avoiding WordPress core's premature cookie authentication checks
 - **Settings forms** use standard WordPress nonce verification (`wp_nonce_field` / `wp_verify_nonce`)
+
+### Email opt-out
+
+Recipients stop reports and alerts through a signed link that needs no login.
+
+- **Derived token** - `HMAC-SHA256( 'mdvrm_unsub|' + address, site secret )` truncated to 40 hex characters, 160 bits. Nothing is stored per link, so there is no token table to leak or to expire, and a token cannot be produced without the secret.
+- **Separate secret** - the key is generated once into a non-autoloaded option and is not derived from `wp_salt()`, which keeps links valid across a salts rotation and keeps the signing key out of the options loaded on every request.
+- **No address in the link** - a token is matched against a closed candidate set (configured recipient, admin email, already opted-out addresses) with `hash_equals()`.
+- **Recipient scoped** - one link unsubscribes exactly one address, other recipients keep receiving emails, and the response page never repeats the address it acted on.
+- **Preview safe** - requests carrying link preview or prefetch headers answer without changing state, so mail scanners and safe-link proxies cannot unsubscribe anyone.
+- **Request hardening** - HTTP method overrides are rejected, forged tokens are counted per peer address and throttled briefly, the response is `no-store` and `noindex`, and malformed requests return 400.
+- **Reversible and visible** - the paused state is shown on the settings page, and resuming it requires a nonce-checked action behind `manage_options`.
 
 ### Data Handling
 

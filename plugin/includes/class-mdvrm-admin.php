@@ -518,9 +518,15 @@ class MDVRM_Admin {
 			return;
 		}
 
-		$message  = '';
-		$error    = '';
-		$settings = $this->plugin->settings()->all();
+		$message      = '';
+		$error        = '';
+		$settings     = $this->plugin->settings()->all();
+		$recipient    = (string) $settings['alert_recipient'];
+		$unsubscribed = $this->plugin->unsubscribe()->is_opted_out( $recipient );
+
+		if ( filter_input( INPUT_GET, 'mdvrm_resubscribed' ) ) {
+			$message = __( 'Reports are enabled again for this recipient.', 'mudrava-rum' );
+		}
 
 		if ( isset( $_POST['mdvrm_settings_nonce'] ) ) {
 			$nonce = sanitize_text_field( wp_unslash( $_POST['mdvrm_settings_nonce'] ) );
@@ -637,6 +643,21 @@ class MDVRM_Admin {
 						</div>
 						<span class="mdvrm-field__desc"><?php esc_html_e( 'Where summaries and alerts are sent.', 'mudrava-rum' ); ?></span>
 					</div>
+
+					<?php if ( $unsubscribed ) : ?>
+						<div class="mdvrm-flag" role="status">
+							<p>
+								<strong><?php esc_html_e( 'Emails are paused.', 'mudrava-rum' ); ?></strong>
+								<?php esc_html_e( 'This recipient used the unsubscribe link in an email, so no reports or alerts are sent to it. Saving a different address resumes delivery immediately.', 'mudrava-rum' ); ?>
+							</p>
+							<a
+								class="button button-primary"
+								href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=' . MDVRM_Unsubscribe::RESUME_ACTION ), MDVRM_Unsubscribe::RESUME_ACTION ) ); ?>"
+							><?php esc_html_e( 'Resume reports', 'mudrava-rum' ); ?></a>
+						</div>
+					<?php else : ?>
+						<span class="mdvrm-field__desc"><?php esc_html_e( 'Every email carries a one-click unsubscribe link for this recipient.', 'mudrava-rum' ); ?></span>
+					<?php endif; ?>
 				</div>
 
 				<div class="card mdvrm-card">

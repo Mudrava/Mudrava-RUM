@@ -2,8 +2,8 @@
 Contributors: mudrava
 Tags: monitoring, performance, rum, lcp, ttfb
 Requires at least: 6.2
-Tested up to: 7.1.4
-Stable tag: 1.0.2
+Tested up to: 7.1
+Stable tag: 1.1.0
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -21,6 +21,7 @@ Mudrava RUM captures real user performance data from your WordPress site visitor
 * Filterable by session ID, URL, device type, and network type
 * On-demand performance reports with averages and P75 LCP
 * Scheduled email summaries (daily or weekly via WP-Cron)
+* One-click unsubscribe link in every report and alert, no login required
 * Critical TTFB alerts with configurable thresholds
 * Configurable sampling rate and URL blacklist
 * Role-based exclusion (skip tracking for specific user roles)
@@ -71,6 +72,14 @@ Data is stored in a custom database table with automatic retention management. Y
 
 Go to Mudrava RUM > Live Monitor in your WordPress admin. Click "Generate Report" for aggregated statistics. You can also configure scheduled email reports in Settings.
 
+= Can a recipient stop these emails without logging in? =
+
+Yes. Every report and every alert ends with an unsubscribe link, and the messages carry the standard List-Unsubscribe and List-Unsubscribe-Post headers, so most mail clients show their own Unsubscribe button. The link works without any login and is a signed token derived from that one address: it unsubscribes only that recipient, it does not put the address in the URL, and it cannot be guessed or reused for someone else. Automated link previews are ignored, so a mail scanner clicking the link never unsubscribes anyone.
+
+= How do I start the emails again? =
+
+Open Mudrava RUM > Settings. The settings page shows an "Emails are paused" notice with a Resume reports button when the configured recipient has unsubscribed. Saving a different recipient address also resumes delivery at once.
+
 == Screenshots ==
 
 1. Live Monitor dashboard with real-time performance log.
@@ -95,7 +104,20 @@ This plugin does not use cookies. Session IDs are stored in the browser's sessio
 
 Collected data is automatically purged based on your configured retention settings (maximum records and retention days).
 
+**Report recipients:**
+
+Reports and alerts go to one configured address. If that recipient uses the unsubscribe link, the plugin stores only that address and the time of the opt-out, so it stops receiving emails. That entry is not linked to any user account or to any collected performance data, and it is removed when the recipient is re-subscribed or when the plugin is deleted.
+
 == Changelog ==
+
+= 1.1.0 =
+* Added: unsubscribe link in every email. Reports and alerts now end with a signed link and carry the List-Unsubscribe and List-Unsubscribe-Post headers (RFC 8058), so a recipient can stop the emails from the message itself, without any login, including one-click unsubscribe in mail clients that support it.
+* Added: Settings shows an "Emails are paused" notice with a Resume reports button when the configured recipient has unsubscribed.
+* Added: developer hooks mdvrm_unsubscribed, mdvrm_resubscribed and mdvrm_email_unsubscribe_line.
+* Security: the token in the link is a 160-bit HMAC of the recipient address, keyed by a per-site secret that is generated once and kept out of the autoloaded option set. No address appears in the URL, tokens are compared in constant time, forged attempts are rate limited per client address, method overrides are rejected, automated link previews never trigger an opt-out, and the response page is noindex and no-store.
+* Fixed: the "Tested up to" header now uses the major version (7.1), which Plugin Check requires.
+* Fixed: the integration test runner now fails a suite when any assertion reports FAIL, not only when the process exits with an error.
+* Tested: five integration suites on WordPress 7.1.5 with PHP 8.3, the new opt-out suite contributing 67 assertions, plus a manual end to end pass through a real browser and a local mail catcher. Plugin Check reports no errors or warnings.
 
 = 1.0.2 =
 * Tested: verified full compatibility with WordPress 7.1.4 - ingestion, queries and stats, reports and alerts, and the tracking collector suites all pass on a fresh WordPress 7.1.4 install (PHP 8.3). PHPCS clean on PHP 7.4, 8.0 and 8.3. No changes to the runtime code.
@@ -135,6 +157,9 @@ Collected data is automatically purged based on your configured retention settin
 * REST API endpoints for data collection and retrieval
 
 == Upgrade Notice ==
+
+= 1.1.0 =
+Every report and alert email now carries a working one-click unsubscribe link, and the settings page shows when the configured recipient has stopped receiving emails. No schema change.
 
 = 1.0.0 =
 Complete admin redesign and reliability fixes (cron, sampling, alerts, data quality). Database schema gains additional metric indexes; they are applied automatically on upgrade.

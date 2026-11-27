@@ -504,6 +504,18 @@ class MDVRM_REST {
 	 * @return WP_REST_Response
 	 */
 	public function send_report( WP_REST_Request $request ): WP_REST_Response { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found -- Required by REST API.
+		$recipient = (string) $this->plugin->settings()->get( 'alert_recipient' );
+
+		if ( '' !== $recipient && $this->plugin->unsubscribe()->is_opted_out( $recipient ) ) {
+			return new WP_REST_Response(
+				array(
+					'status'  => 'paused',
+					'message' => __( 'This recipient unsubscribed from emails. Resume reports on the settings page first.', 'mudrava-rum' ),
+				),
+				409
+			);
+		}
+
 		$sent = $this->plugin->reports()->send_report( true );
 		if ( $sent ) {
 			return new WP_REST_Response( array( 'status' => 'sent' ), 200 );

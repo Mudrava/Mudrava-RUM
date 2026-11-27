@@ -475,6 +475,23 @@
 	margin-top: 4px;
 }
 
+.mdvrm-flag {
+	margin: 14px 0 0;
+	padding: 12px 14px;
+	background: #fcf9e8;
+	border: 1px solid var(--mdvrm-border);
+	border-left: 3px solid #dba617;
+	font-size: 13px;
+}
+
+.mdvrm-flag p {
+	margin: 0 0 10px;
+}
+
+.mdvrm-flag strong {
+	color: var(--mdvrm-navy);
+}
+
 .mdvrm-checkbox-list {
 	display: flex;
 	flex-wrap: wrap;

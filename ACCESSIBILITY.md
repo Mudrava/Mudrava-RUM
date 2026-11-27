@@ -1,6 +1,6 @@
 # Accessibility statement
 
-Last reviewed: 2026-10-08.
+Last reviewed: 2026-11-27.
 
 Mudrava RUM has two halves, and they have very different accessibility
 surfaces:
@@ -20,8 +20,15 @@ surfaces:
 - Metrics are presented as real text in tables and stat cards - never as
   color-only or image-only indicators. Device type is shown as a word
   ("desktop", "mobile", "tablet") alongside the icon.
-- All interactive controls are native buttons, selects and inputs; keyboard
+- Every interactive control is a native button, select, input or link; keyboard
   operation follows the WordPress admin baseline.
+- The unsubscribe page a recipient reaches from an email is a plain document:
+  correct `lang` and charset, one `h1`, one paragraph of plain text, no script,
+  no cookie banner and nothing that has to be dismissed. Dark text on a white
+  card, so it stays legible at default zoom and in a mail-client webview.
+- The "Emails are paused" state on the settings page is announced with
+  `role="status"`, carries the reason in text, and the fix next to it is a plain
+  link rather than a control hidden in a form.
 - Every string is translatable through the standard text domain.
 
 ## Known limitations

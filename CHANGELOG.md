@@ -4,6 +4,68 @@ All notable changes to Mudrava RUM will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.1.0] - 2026-11-27
+
+### Added
+
+- Unsubscribe link in every email. Reports and critical TTFB alerts now end with a signed
+  one-click link, and every message carries `List-Unsubscribe` plus
+  `List-Unsubscribe-Post: List-Unsubscribe=One-Click` (RFC 8058), so a recipient can stop the
+  emails from the message itself, in the browser or with the mail client's own Unsubscribe button,
+  without ever reaching the admin area.
+- `MDVRM_Unsubscribe`: token derivation and verification, opt-out storage, the public endpoint on
+  `admin-post.php`, the response page, and the administrator resume action.
+- Settings shows an "Emails are paused" notice with a Resume reports button whenever the
+  configured recipient has unsubscribed, and the manual "Send test now" action answers with that
+  reason instead of a generic mail failure.
+- Developer hooks: `mdvrm_unsubscribed`, `mdvrm_resubscribed`, `mdvrm_email_unsubscribe_line`.
+- Integration suite `tests/05-unsubscribe.php` (67 assertions) covering token shape, forged and
+  malformed tokens, preview requests, idempotent clicks, silenced reports and alerts, resume,
+  recipient isolation, throttling, storage caps, malformed stored data, and uninstall coverage.
+- Reproducible Docker stand: `tests/docker-compose.stand.yml` (MySQL, WordPress on PHP 8.3,
+  WP-CLI, Mailpit) plus `tests/bootstrap-stand.sh`. The plugin directory is mounted straight into
+  the site, and `tests/stand-mail-check.php` sends one real report and prints its unsubscribe link.
+
+### Security
+
+- The unsubscribe token is `HMAC-SHA256( 'mdvrm_unsub|' + address, site secret )` truncated to 40
+  hex characters, 160 bits. It is derived rather than stored, so no token table exists and nothing
+  has to expire. Tokens are compared with `hash_equals()` against a closed candidate set, and the
+  recipient address is never present in the link.
+- The signing secret is generated once into a non-autoloaded option and is independent of
+  `wp_salt()`, so links already in inboxes survive a salts rotation and the key stays out of the
+  options loaded on every request.
+- Requests that look like link previews or scanners (`X-Purpose: preview`, `X-Moz: prefetch`,
+  `Sec-Purpose: prefetch`) are answered without changing any state. HTTP method overrides are
+  rejected, forged tokens are counted per peer address and throttled, malformed requests return
+  400, and the response page is `no-store` and `noindex` and never echoes an address back.
+- Opt-out storage is bounded, validated on read, and rebuilt on write, so a corrupted option cannot
+  silently unsubscribe someone. Both new options are removed on uninstall.
+
+### Fixed
+
+- The `Tested up to` header now states the major version (`7.1`), which Plugin Check requires; the
+  previous `7.1.4` was reported as an error.
+- `tests/run.sh` reported SUITE PASS whenever the WP-CLI process exited cleanly. Assertion failures
+  printed `FAIL` and were still swallowed, so a broken suite looked green. The runner now counts
+  `FAIL`, `MAILFAIL`, fatal and parse errors and fails the run on any of them.
+- Scheduled reports no longer rebuild the full aggregate every hour for a recipient that is not
+  receiving emails; the opt-out check runs before the stats query.
+- TTFB alert bookkeeping no longer records an alert as sent when the recipient has opted out.
+
+### Verified
+
+- WordPress 7.1.5 with PHP 8.3 on the new Docker stand: all five integration suites pass.
+- End to end in a real browser: a report delivered to Mailpit shows the `List-Unsubscribe` header
+  and an unsubscribe link, the link renders the confirmation page for a logged-out visitor, a second
+  click reports the state without changing it, the settings page shows the paused notice, and Resume
+  reports restores delivery with a nonce-protected action.
+- Over plain HTTP: logged-out resume attempts are refused, a forged token is refused, the sixth
+  forged token from the same address is refused with 429, and the response carries `no-store` and
+  `X-Robots-Tag: noindex`.
+- Plugin Check 2.2.0 (all categories, experimental checks and low-severity findings included)
+  reports no errors and no warnings. PHPCS clean.
+
 ## [1.0.2] - 2026-11-02
 
 ### Fixed

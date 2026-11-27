@@ -15,6 +15,7 @@ require_once MDVRM_PLUGIN_DIR . 'includes/class-mdvrm-rest.php';
 require_once MDVRM_PLUGIN_DIR . 'includes/class-mdvrm-collector.php';
 require_once MDVRM_PLUGIN_DIR . 'includes/class-mdvrm-admin.php';
 require_once MDVRM_PLUGIN_DIR . 'includes/class-mdvrm-reports.php';
+require_once MDVRM_PLUGIN_DIR . 'includes/class-mdvrm-unsubscribe.php';
 
 /**
  * Core bootstrap class for Mudrava RUM.
@@ -71,6 +72,13 @@ class MDVRM_Plugin {
 	protected $reports;
 
 	/**
+	 * Email opt-out handler.
+	 *
+	 * @var MDVRM_Unsubscribe
+	 */
+	protected $unsubscribe;
+
+	/**
 	 * Get singleton.
 	 *
 	 * @return MDVRM_Plugin
@@ -90,16 +98,18 @@ class MDVRM_Plugin {
 	 * handler is available before core fires wp_cron() on init.
 	 */
 	protected function __construct() {
-		$this->settings  = new MDVRM_Settings();
-		$this->collector = new MDVRM_Collector( $this );
-		$this->rest      = new MDVRM_REST( $this );
-		$this->admin     = new MDVRM_Admin( $this );
-		$this->reports   = new MDVRM_Reports( $this );
+		$this->settings    = new MDVRM_Settings();
+		$this->collector   = new MDVRM_Collector( $this );
+		$this->rest        = new MDVRM_REST( $this );
+		$this->admin       = new MDVRM_Admin( $this );
+		$this->reports     = new MDVRM_Reports( $this );
+		$this->unsubscribe = new MDVRM_Unsubscribe( $this );
 
 		$this->collector->hook();
 		$this->rest->hook();
 		$this->admin->hook();
 		$this->reports->hook();
+		$this->unsubscribe->hook();
 
 		add_action( 'admin_init', array( $this, 'maybe_upgrade' ) );
 		add_action( 'rest_api_init', array( $this, 'maybe_upgrade' ) );
@@ -162,6 +172,15 @@ class MDVRM_Plugin {
 	}
 
 	/**
+	 * Get email opt-out handler.
+	 *
+	 * @return MDVRM_Unsubscribe
+	 */
+	public function unsubscribe(): MDVRM_Unsubscribe {
+		return $this->unsubscribe;
+	}
+
+	/**
 	 * Register privacy policy suggested content.
 	 */
 	public function register_privacy_content(): void {
@@ -170,11 +189,12 @@ class MDVRM_Plugin {
 		}
 
 		$content = sprintf(
-			'<h2>%s</h2><p>%s</p><p>%s</p><p>%s</p>',
+			'<h2>%s</h2><p>%s</p><p>%s</p><p>%s</p><p>%s</p>',
 			__( 'Mudrava RUM', 'mudrava-rum' ),
 			__( 'This plugin collects performance metrics (page load times, device type, network type, country derived from Cloudflare headers, and the visited page URL without query string) from site visitors. For logged-in visitors it may also store a non-unique role label for filtering. No email address, username, IP address, or other directly identifying profile data is stored.', 'mudrava-rum' ),
 			__( 'Session IDs are randomly generated per browser tab using sessionStorage and are not linked to user accounts. Role labels are stored independently of user IDs. No cookies are set by this plugin. No data is sent to external services; all collected data is stored locally in your WordPress database.', 'mudrava-rum' ),
-			__( 'Collected data is automatically purged based on configured retention settings.', 'mudrava-rum' )
+			__( 'Collected data is automatically purged based on configured retention settings.', 'mudrava-rum' ),
+			__( 'Performance reports and alerts are sent to one configured recipient address. Every message includes a signed unsubscribe link, and when that link is used the plugin stores only the recipient address and the time of the opt-out so it stops receiving emails. That entry is not linked to visitor records or user accounts, and it is removed on re-subscription or plugin deletion.', 'mudrava-rum' )
 		);
 
 		wp_add_privacy_policy_content( 'Mudrava RUM', wp_kses_post( $content ) );
